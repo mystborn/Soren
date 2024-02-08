@@ -1,0 +1,3 @@
+[submodule "submodules/sso_string"]
+	path = submodules/sso_string
+	url = git@github.com:mystborn/sso_string.git

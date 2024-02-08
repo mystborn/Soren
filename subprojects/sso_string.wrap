@@ -1,0 +1,5 @@
+[wrap-git]
+
+url = git@github.com:mystborn/sso_string.git
+revision = dev
+clone-recursive = true

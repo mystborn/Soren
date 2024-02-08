@@ -1,0 +1,5 @@
+[wrap-git]
+
+url = git@github.com:mystborn/MystEcs.git
+revision = dev
+clone-recursive = true
