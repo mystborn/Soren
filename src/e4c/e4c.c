@@ -3153,7 +3153,7 @@ static E4C_INLINE e4c_frame * _e4c_frame_allocate(int line, const char * functio
     e4c_frame * frame;
 
     /* (using calloc instead of malloc so that jmp_buf is initialized to zero) */
-    frame = soren_malloc( (size_t)1, sizeof(*frame) );
+    frame = soren_calloc( (size_t)1, sizeof(*frame) );
 
     if(frame == NULL){
         MEMORY_ERROR(DESC_MALLOC_FRAME, line, function);

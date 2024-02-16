@@ -2,6 +2,73 @@ project('soren', 'c')
 
 cc = meson.get_compiler('c')
 
-subproject('GenericDataStructures')
-subproject('MystEcs')
-subproject('sso_string')
+compiler_args = ['/DSSO_STRING_BUILD', '/Zc:preprocessor']
+
+include_files = [
+    'submodules/GenericDataStructures/include',
+    'submodules/MystEcs/include',
+    'submodules/sso_string/include',
+    'include',
+    '../SDL/include',
+    '../bdwgc/include'
+]
+
+inc = include_directories(include_files)
+
+sources = files([
+    './submodules/MystEcs/src/ecs_component_flag.c',
+    './submodules/MystEcs/src/ecs_component.c',
+    './submodules/MystEcs/src/ecs_entity_set.c',
+    './submodules/MystEcs/src/ecs_event.c',
+    './submodules/MystEcs/src/ecs_messages.c',
+    './submodules/MystEcs/src/ecs_system.c',
+    './submodules/MystEcs/src/ecs_world.c',
+    './submodules/MystEcs/src/ecs.c',
+    './submodules/sso_string/src/sso_string.c',
+    './src/collisions/soren_colliders_box.c',
+    './src/collisions/soren_colliders_circle.c',
+    './src/collisions/soren_colliders_line.c',
+    './src/collisions/soren_colliders_point.c',
+    './src/collisions/soren_colliders_polygon.c',
+    './src/collisions/soren_colliders.c',
+    './src/collisions/soren_collision_utils.c',
+    './src/collisions/soren_collisions.c',
+    './src/e4c/e4c.c',
+    './src/soren_generics.c',
+    './src/soren_std.c'
+])
+
+sdl = cc.find_library(
+    'SDL3',
+    dirs: ['C:/Users/chris/source/c/SDL/VisualC/x64/Debug'],
+    required: true)
+
+cord = cc.find_library(
+    'cord',
+    dirs: ['C:/Users/chris/source/c/bdwgc/out/x64/Release'],
+    required: true)
+
+gc = cc.find_library(
+    'gc',
+    dirs: ['C:/Users/chris/source/c/bdwgc/out/x64/Release'],
+    required: true)
+
+deps = [sdl, cord, gc]
+
+soren = static_library(
+    'soren',
+    sources,
+    include_directories: inc,
+    name_suffix: 'lib',
+    name_prefix: '',
+    dependencies: deps,
+    c_args: compiler_args
+)
+
+soren_shared = shared_library(
+    'soren',
+    sources,
+    include_directories: inc,
+    dependencies: deps,
+    c_args: compiler_args
+)

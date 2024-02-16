@@ -1,3 +1,9 @@
+[submodule "submodules/GenericDataStructures"]
+	path = submodules/GenericDataStructures
+	url = git@github.com:mystborn/GenericDataStructures.git
+[submodule "submodules/MystEcs"]
+	path = submodules/MystEcs
+	url = git@github.com:mystborn/MystEcs.git
 [submodule "submodules/sso_string"]
 	path = submodules/sso_string
 	url = git@github.com:mystborn/sso_string.git

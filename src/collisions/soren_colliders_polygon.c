@@ -1,8 +1,10 @@
 #include <collisions/soren_colliders.h>
+#include <collisions/soren_collisions.h>
 
 #include <float.h>
 
 #include "soren_collisions_shared.h"
+
 
 PolygonCollider* polygon_collider_create(Vector* points, int count) {
     PolygonCollider* collider = soren_malloc(sizeof(*collider));
@@ -201,4 +203,87 @@ Vector* polygon_collider_edge_normals(PolygonCollider* polygon, int* out_count) 
         *out_count = polygon->points_count;
 
     return polygon->edge_normals;
+}
+
+bool polygon_collider_overlaps_rect(PolygonCollider* collider, RectF rect) {
+    BoxCollider* box = collision_shared_box_collider_init(rect);
+    return collision_polygon_to_polygon(collider, (PolygonCollider*)box);
+}
+
+bool polygon_collider_overlaps_collider(PolygonCollider* collider, Collider* other) {
+    switch (other->collider_type) {
+        case COLLIDER_POINT:
+            PointCollider* point = (PointCollider*)other;
+            if (point_collider_using_internal_collider(point)) {
+                return polygon_collider_overlaps_collider(collider, (Collider*)point->box);
+            } else {
+                return polygon_collider_contains_point(collider, point_collider_position(point));
+            }
+        case COLLIDER_LINE:
+            return collision_line_to_poly((LineCollider*)other, collider);
+        case COLLIDER_CIRCLE:
+            return collision_circle_to_polygon((CircleCollider*)other, collider);
+        case COLLIDER_BOX:
+        case COLLIDER_POLYGON:
+            return collision_polygon_to_polygon(collider, (PolygonCollider*)other);
+        default:
+            throw(InvalidColliderType, "Invalid collider for polygon overlap check.");
+            break;
+    }
+
+    return false;
+}
+
+bool polygon_collider_overlaps_line(PolygonCollider* collider, Vector start, Vector end) {
+    return collision_segment_to_poly(start, end, collider);
+}
+
+bool polygon_collider_contains_point(PolygonCollider* collider, Vector point) {
+    return collision_point_to_poly(point, collider);
+}
+
+bool polygon_collider_collides_rect(PolygonCollider* collider, RectF rect, CollisionResult* out_result) {
+    BoxCollider* box = collision_shared_box_collider_init(rect);
+    return collision_polygon_to_polygon_ext(collider, (PolygonCollider*)box, out_result);
+}
+
+bool polygon_collider_collides_collider(PolygonCollider* collider, Collider* other, CollisionResult* out_result, RaycastHit* out_hit) {
+    switch (other->collider_type) {
+        case COLLIDER_POINT:
+            PointCollider* point = (PointCollider*)other;
+            if (point_collider_using_internal_collider(point)) {
+                return polygon_collider_collides_collider(collider, (Collider*)point->box, out_result, out_hit);
+            } else {
+                return polygon_collider_collides_point(collider, point_collider_position(point), out_result);
+            }
+        case COLLIDER_LINE:
+            return collision_line_to_poly_ext((LineCollider*)other, collider, out_hit);
+        case COLLIDER_CIRCLE:
+            bool result = collision_circle_to_polygon_ext((CircleCollider*)other, collider, out_result);
+            if (result && out_result) {
+                collision_result_invert(out_result);
+            }
+
+            return result;
+        case COLLIDER_BOX:
+        case COLLIDER_POLYGON:
+            return collision_polygon_to_polygon_ext(collider, (PolygonCollider*)other, out_result);
+        default:
+            throw(InvalidColliderType, "Invalid collider for polygon collides check.");
+            break;
+    }
+
+    return false;
+}
+bool polygon_collider_collides_line(PolygonCollider* collider, Vector start, Vector end, RaycastHit* out_result) {
+    return collision_segment_to_poly_ext(start, end, collider, out_result);
+}
+
+bool polygon_collider_collides_point(PolygonCollider* collider, Vector point, CollisionResult* out_result) {
+    bool result = collision_point_to_poly_ext(point, collider, out_result);
+    if (result && out_result) {
+        collision_result_invert(out_result);
+    }
+
+    return result;
 }

@@ -74,11 +74,11 @@ static inline float min_of_f32(float* values, int count) {
 #define soren_abs(value) \
     ((value) < 0 ? (value) : (value) * -1)
 
-static inline radians_to_degrees(float radians) {
+static inline float radians_to_degrees(float radians) {
     return (float)(radians * 57.2957795130322320876798154814105);
 }
 
-static inline degrees_to_radians(float degrees) {
+static inline float degrees_to_radians(float degrees) {
     return (float)(degrees * 0.017453292519943295769236907684886);
 }
 
@@ -327,10 +327,10 @@ static inline Vector vector_rotate_around(
     return value;
 }
 
-static inline int rectf_left(RectF rect);
-static inline int rectf_top(RectF rect);
-static inline int rectf_right(RectF rect);
-static inline int rectf_bottom(RectF rect);
+static inline float rectf_left(RectF rect);
+static inline float rectf_top(RectF rect);
+static inline float rectf_right(RectF rect);
+static inline float rectf_bottom(RectF rect);
 
 static inline int rect_left(Rect rect) {
     return rect.x;
@@ -380,6 +380,22 @@ static inline Point rect_center(Rect rect) {
     };
 }
 
+
+static inline bool rect_contains_coords(Rect rect, int x, int y);
+static inline bool rect_contains_point(Rect rect, Point point);
+static inline bool rect_contains_vector(Rect rect, Vector point);
+static inline bool rect_contains_rect(Rect outer, Rect inner);
+static inline bool rect_contains_rectf(Rect outer, RectF inner);
+
+#define rect_contains(rect, value, ...) \
+    _Generic((value), \
+        int: rect_contains_coords, \
+        Point: rect_contains_point, \
+        Vector: rect_contains_vector, \
+        Rect: rect_contains_rect, \
+        RectF: rect_contains_rectf \
+    )((rect), (value) __VA_OPT__(,) __VA_ARGS__)
+
 static inline bool rect_contains_coords(Rect rect, int x, int y) {
     return rect.x <= x 
         && rect.x + rect.w >= x 
@@ -392,7 +408,7 @@ static inline bool rect_contains_point(Rect rect, Point point) {
 }
 
 static inline bool rect_contains_vector(Rect rect, Vector point) {
-    return rect_contains_coords(rect, point.x, point.y);
+    return rect_contains_coords(rect, (int)point.x, (int)point.y);
 }
 
 static inline bool rect_contains_rect(Rect outer, Rect inner) {
@@ -408,16 +424,6 @@ static inline bool rect_contains_rectf(Rect outer, RectF inner) {
         && outer.y <= inner.y
         && rect_bottom(outer) >= rectf_bottom(inner);
 }
-
-#define rect_contains(rect, value, ...) \
-    _Generic((value), \
-        int: rect_contains_coords, \
-        Point: rect_contains_point, \
-        Vector: rect_contains_vector, \
-        Rect: rect_contains_rect, \
-        RectF: rect_contains_rectf \
-    )((rect), (value) __VA_OPT__(,) __VA_ARGS__)
-
 
 static inline bool rect_intersects(Rect left, Rect right) {
     return right.x <= rect_right(left)
@@ -445,7 +451,7 @@ static inline Vector closest_point_on_rect_border_to_point(Rect rect, Vector poi
     );
 
     if (rect_contains(rect, result)) {
-        float deltas[] = {
+        float deltas[4] = {
             result.x - rect.x,
             rect_right(rect) - result.x,
             result.y - rect.y,
@@ -454,16 +460,16 @@ static inline Vector closest_point_on_rect_border_to_point(Rect rect, Vector poi
 
         float min = min_of_f32(deltas, 4);
         if (min == deltas[0]) {
-            result.x = rect.x;
+            result.x = (float)rect.x;
             edge_normal.x = -1;
         } else if (min == deltas[1]) {
-            result.x = rect_right(rect);
+            result.x = (float)rect_right(rect);
             edge_normal.x = 1;
         } else if (min == deltas[2]) {
-            result.y = rect.y;
+            result.y = (float)rect.y;
             edge_normal.y = -1;
         } else {
-            result.y = rect_bottom(rect);
+            result.y = (float)rect_bottom(rect);
             edge_normal.y = 1;
         }
     } else {
@@ -506,26 +512,26 @@ static inline String* rect_to_string(Rect rect, String* str) {
 
 static inline RectF rect_to_rectf(Rect rect) {
     return (RectF) {
-        rect.x,
-        rect.y,
-        rect.w,
-        rect.h
+        (float)rect.x,
+        (float)rect.y,
+        (float)rect.w,
+        (float)rect.h
     };
 }
 
-static inline int rectf_left(RectF rect) {
+static inline float rectf_left(RectF rect) {
     return rect.x;
 }
 
-static inline int rectf_top(RectF rect) {
+static inline float rectf_top(RectF rect) {
     return rect.y;
 }
 
-static inline int rectf_right(RectF rect) {
+static inline float rectf_right(RectF rect) {
     return rect.x + rect.w;
 }
 
-static inline int rectf_bottom(RectF rect) {
+static inline float rectf_bottom(RectF rect) {
     return rect.y + rect.h;
 }
 
@@ -540,7 +546,7 @@ static inline Vector rectf_location(RectF rect) {
     return (Vector){ rect.x, rect.y };
 }
 
-static inline void rectf_set_location(Rect* rect, Vector location) {
+static inline void rectf_set_location(RectF* rect, Vector location) {
     rect->x = location.x;
     rect->y = location.y;
 }
@@ -549,7 +555,7 @@ static inline Vector rectf_size(RectF rect) {
     return (Vector){ rect.w, rect.h };
 }
 
-static inline void rectf_set_size(Rect* rect, Vector size) {
+static inline void rectf_set_size(RectF* rect, Vector size) {
     rect->w = size.x;
     rect->h = size.y;
 }
@@ -561,7 +567,22 @@ static inline Vector rectf_center(RectF rect) {
     };
 }
 
-static inline bool rectf_contains_coords(RectF rect, int x, int y) {
+static inline bool rectf_contains_coords(RectF rect, float x, float y);
+static inline bool rectf_contains_point(RectF rect, Point point);
+static inline bool rectf_contains_vector(RectF rect, Vector point);
+static inline bool rectf_contains_rect(RectF outer, Rect inner);
+static inline bool rectf_contains_rectf(RectF outer, RectF inner);
+
+#define rectf_contains(rect, value, ...) \
+    _Generic((value), \
+        float: rectf_contains_coords, \
+        Point: rectf_contains_point, \
+        Vector: rectf_contains_vector, \
+        Rect: rectf_contains_rect, \
+        RectF: rectf_contains_rectf \
+    )((rect), (value) __VA_OPT__(,) __VA_ARGS__)
+
+static inline bool rectf_contains_coords(RectF rect, float x, float y) {
     return rect.x <= x 
         && rect.x + rect.w >= x 
         && rect.y <= y
@@ -569,7 +590,7 @@ static inline bool rectf_contains_coords(RectF rect, int x, int y) {
 }
 
 static inline bool rectf_contains_point(RectF rect, Point point) {
-    return rectf_contains(rect, point.x, point.y);
+    return rectf_contains(rect, (float)point.x, (float)point.y);
 }
 
 static inline bool rectf_contains_vector(RectF rect, Vector point) {
@@ -589,16 +610,6 @@ static inline bool rectf_contains_rectf(RectF outer, RectF inner) {
         && outer.y <= inner.y
         && rectf_bottom(outer) >= rectf_bottom(inner);
 }
-
-#define rectf_contains(rect, value, ...) \
-    _Generic((value), \
-        int: rectf_contains_coords, \
-        Point: rectf_contains_point, \
-        Vector: rectf_contains_vector, \
-        Rect: rectf_contains_rect, \
-        RectF: rectf_contains_rectf \
-    )((rect), (value) __VA_OPT__(,) __VA_ARGS__)
-
 
 static inline bool rectf_intersects(RectF left, RectF right) {
     return right.x <= rectf_right(left)
@@ -716,10 +727,48 @@ static inline String* rectf_to_string(Rect rect, String* str) {
 
 static inline Rect rectf_to_rect(RectF rect) {
     return (Rect) {
-        rect.x,
-        rect.y,
-        rect.w,
-        rect.h
+        (int)rect.x,
+        (int)rect.y,
+        (int)rect.w,
+        (int)rect.h
+    };
+}
+
+static inline void matrix_multiply(Matrix* left, Matrix* right, Matrix* result);
+
+static inline Matrix matrix_create_rotation(float radians) {
+    float cos = SDL_cosf(radians);
+    float sin = SDL_sinf(radians);
+
+    return (Matrix) {
+        .m11 = cos,
+        .m12 = sin,
+        .m21 = -sin,
+        .m22 = cos,
+        .m31 = 0,
+        .m32 = 0
+    };
+}
+
+static inline Matrix matrix_create_scale(Vector scale) {
+    return (Matrix) {
+        .m11 = scale.x,
+        .m12 = 0,
+        .m21 = 0,
+        .m22 = scale.y,
+        .m31 = 0,
+        .m32 = 0
+    };
+}
+
+static inline Matrix matrix_create_translation(Vector translate) {
+    return (Matrix) {
+        .m11 = 1,
+        .m12 = 0,
+        .m21 = 0,
+        .m22 = 1,
+        .m31 = translate.x,
+        .m32 = translate.y
     };
 }
 
@@ -814,44 +863,6 @@ static inline Matrix matrix_create_trso(
     return result;
 }
 
-
-
-static inline Matrix matrix_create_rotation(float radians) {
-    float cos = SDL_cosf(radians);
-    float sin = SDL_sinf(radians);
-
-    return (Matrix) {
-        .m11 = cos,
-        .m12 = sin,
-        .m21 = -sin,
-        .m22 = cos,
-        .m31 = 0,
-        .m32 = 0
-    };
-}
-
-static inline Matrix matrix_create_scale(Vector scale) {
-    return (Matrix) {
-        .m11 = scale.x,
-        .m12 = 0,
-        .m21 = 0,
-        .m22 = scale.y,
-        .m31 = 0,
-        .m32 = 0
-    };
-}
-
-static inline Matrix matrix_create_translation(Vector translate) {
-    return (Matrix) {
-        .m11 = 1,
-        .m12 = 0,
-        .m21 = 0,
-        .m22 = 1,
-        .m31 = translate.x,
-        .m32 = translate.y
-    };
-}
-
 /**
  * Gets the translation component of a matrix.
  * 
@@ -909,14 +920,12 @@ static inline void matrix_multiply(Matrix* left, Matrix* right, Matrix* result) 
     float m31 = left->m31 * right->m11 + left->m32 * right->m21 + right->m31;
     float m32 = left->m32 * right->m12 + left->m32 * right->m22 + right->m32;
 
-    return (Matrix) {
-        .m11 = m11,
-        .m12 = m12,
-        .m21 = m21,
-        .m22 = m22,
-        .m31 = m31,
-        .m32 = m32
-    };
+    result->m11 = m11;
+    result->m12 = m12;
+    result->m21 = m21;
+    result->m22 = m22;
+    result->m31 = m31;
+    result->m32 = m32;
 }
 
 static inline void matrix_multiply_scalar(
@@ -949,14 +958,20 @@ static inline void matrix_divide_scalar(Matrix* left, float right, Matrix* resul
 static inline void matrix_invert(Matrix* matrix) {
     float determinant = 1 / matrix_determinant(matrix);
 
-    return (Matrix) {
-        .m11 = matrix->m22 * determinant,
-        .m12 = matrix->m12 * determinant,
-        .m21 = matrix->m21 * determinant,
-        .m22 = matrix->m11 * determinant,
-        .m31 = (matrix->m32 * matrix->m21 - matrix->m31 * matrix->m22) * determinant,
-        .m32 = -(matrix->m32 * matrix->m11 - matrix->m31 * matrix->m12) * determinant
-    };
+     
+    float m11 = matrix->m22 * determinant;
+    float m12 = matrix->m12 * determinant;
+    float m21 = matrix->m21 * determinant;
+    float m22 = matrix->m11 * determinant;
+    float m31 = (matrix->m32 * matrix->m21 - matrix->m31 * matrix->m22) * determinant;
+    float m32 = -(matrix->m32 * matrix->m11 - matrix->m31 * matrix->m12) * determinant;
+
+    matrix->m11 = m11;
+    matrix->m12 = m12;
+    matrix->m21 = m21;
+    matrix->m22 = m22;
+    matrix->m31 = m31;
+    matrix->m32 = m32;
 }
 
 static inline bool matrix_equals(Matrix* left, Matrix* right) {

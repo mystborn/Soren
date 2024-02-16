@@ -1,6 +1,0 @@
-[wrap-git]
-
-directory = GenericDataStructures
-url = git@github.com:mystborn/GenericDataStructures.git
-revision = dev
-clone-recursive = true

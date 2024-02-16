@@ -1,4 +1,7 @@
 #include <collisions/soren_colliders.h>
+#include <collisions/soren_collisions.h>
+
+#include "soren_collisions_shared.h"
 
 static void line_collider_clean(LineCollider* line) {
     line->dirty = false;
@@ -149,4 +152,90 @@ void line_collider_set_original_pivot(LineCollider* line, Vector pivot) {
 
     line->original_pivot = pivot;
     line->dirty = true;
+}
+
+bool line_collider_overlaps_rect(LineCollider* collider, RectF rect) {
+    BoxCollider* box = collision_shared_box_collider_init(rect);
+    return collision_line_to_poly(collider, (PolygonCollider*)box);
+}
+
+bool line_collider_overlaps_collider(LineCollider* collider, Collider* other) {
+    switch (other->collider_type) {
+        case COLLIDER_POINT:
+            PointCollider* point = (PointCollider*)other;
+            if (point_collider_using_internal_collider(point)) {
+                return line_collider_overlaps_collider(collider, (Collider*)point->box);
+            } else {
+                return collision_point_to_line(collider_position(point), collider);
+            }
+        case COLLIDER_LINE:
+            return collision_line_to_line(collider, (LineCollider*)other);
+        case COLLIDER_CIRCLE:
+            return collision_line_to_circle(collider, (CircleCollider*)other);
+        case COLLIDER_BOX:
+        case COLLIDER_POLYGON:
+            return collision_line_to_poly(collider, (PolygonCollider*)other);
+        default:
+            throw(InvalidColliderType, "Invalid collider for line overlap check.");
+            break;
+    }
+
+    return false;
+}
+
+bool line_collider_overlaps_line(LineCollider* collider, Vector start, Vector end) {
+    return collision_line_to_segment(collider, start, end);
+}
+
+bool line_collider_contains_point(LineCollider* collider, Vector point) {
+    return collision_point_to_line(point, collider);
+}
+
+bool line_collider_collides_rect(LineCollider* collider, RectF rect, CollisionResult* out_result) {
+    RaycastHit hit = (RaycastHit){0};
+    BoxCollider* box = collision_shared_box_collider_init(rect);
+    bool result = collision_line_to_poly_ext(collider, (PolygonCollider*)box, &hit);
+    if (result && out_result) {
+        raycast_hit_to_collision_result(&hit, out_result);
+    }
+
+    return result;
+}
+
+bool line_collider_collides_collider(LineCollider* collider, Collider* other, CollisionResult* out_result, RaycastHit* out_hit) {
+    switch (other->collider_type) {
+        case COLLIDER_POINT:
+            PointCollider* point = (PointCollider*)other;
+            if (point_collider_using_internal_collider(point)) {
+                return line_collider_collides_collider(collider, (Collider*)point->box, out_result, out_hit);
+            } else {
+                return collision_point_to_line_ext(collider_position(point), collider, out_result);
+            }
+        case COLLIDER_LINE:
+            return collision_line_to_line_ext(collider, (LineCollider*)other, out_result);
+        case COLLIDER_CIRCLE:
+            return collision_line_to_circle_ext(collider, (CircleCollider*)other, out_hit);
+        case COLLIDER_BOX:
+        case COLLIDER_POLYGON:
+            return collision_line_to_poly_ext(collider, (PolygonCollider*)other, out_hit);
+        default:
+            throw(InvalidColliderType, "Invalid collider for line collides check.");
+            break;
+    }
+
+    return false;
+}
+
+bool line_collider_collides_line(LineCollider* collider, Vector start, Vector end, RaycastHit* out_result) {
+    CollisionResult collision_result = (CollisionResult){0};
+    bool result = collision_line_to_segment_ext(collider, start, end, &collision_result);
+    if (result && out_result) {
+        collision_result_to_raycast_hit(&collision_result, out_result);
+    }
+
+    return result;
+}
+
+bool line_collider_collides_point(LineCollider* collider, Vector point, CollisionResult* out_result) {
+    return collision_point_to_line_ext(point, collider, out_result);
 }
