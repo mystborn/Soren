@@ -2,9 +2,18 @@
 #define SOREN_GENERICS_H
 
 #include "soren_std.h"
-#include "soren_math.h"
 
+#include "generic_list.h"
+
+#include "soren_math.h"
+#include "soren_input.h"
+
+LIST_DEFINE_H(IntList, int_list, int)
 LIST_DEFINE_H(VectorList, vector_list, Vector)
 LIST_DEFINE_H(PointList, point_list, Point)
+LIST_DEFINE_H(ScancodeList, scancode_list, SDL_Scancode)
+LIST_DEFINE_H(GamepadButtonList, gamepad_button_list, uint32_t)
+LIST_DEFINE_H(GamepadActionList, gamepad_action_list, GamepadAction)
+LIST_DEFINE_H(MouseButtonList, mouse_button_list, MouseButtons)
 
 #endif

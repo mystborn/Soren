@@ -40,6 +40,8 @@ static inline void soren_free(void* ptr) {
     GC_free(ptr);
 }
 
+#define soren_assert(condition) E4C_ASSERT(condition)
+
 #define gds_malloc soren_malloc
 #define gds_realloc soren_realloc
 #define gds_calloc soren_calloc

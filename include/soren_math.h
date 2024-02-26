@@ -6,7 +6,6 @@
 #include <SDL3/SDL.h>
 
 #include <sso_string.h>
-#include <generic_list.h>
 
 typedef SDL_FPoint Vector;
 typedef SDL_Point Point;

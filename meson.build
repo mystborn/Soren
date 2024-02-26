@@ -2,7 +2,7 @@ project('soren', 'c')
 
 cc = meson.get_compiler('c')
 
-compiler_args = ['/DSSO_STRING_BUILD', '/Zc:preprocessor']
+compiler_args = ['/DSSO_STRING_BUILD', '/DSSO_STRING_MACROS="soren_std.h"', '/Zc:preprocessor']
 
 include_files = [
     'submodules/GenericDataStructures/include',
@@ -35,7 +35,11 @@ sources = files([
     './src/collisions/soren_collisions.c',
     './src/e4c/e4c.c',
     './src/soren_generics.c',
-    './src/soren_std.c'
+    './src/soren_std.c',
+    './src/input/soren_input.c',
+    './src/input/soren_input_actions.c',
+    './src/input/soren_input_gamepad.c',
+    './src/input/soren_input_mouse_and_keyboard.c'
 ])
 
 sdl = cc.find_library(
