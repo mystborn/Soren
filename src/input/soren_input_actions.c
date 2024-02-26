@@ -12,29 +12,29 @@ static inline ActionMap* action_manager_get_map(int action, int player) {
     return action_manager.actions + action + player * action_manager.action_count;
 }
 
-void action_map_add_key(int action, int player, SDL_Scancode key) {
+SOREN_EXPORT void action_map_add_key(int action, int player, SDL_Scancode key) {
     ActionMap* map = action_manager_get_map(action, player);
     scancode_list_add(&map->keys, key);
 }
 
-void action_map_add_gamepad_button(int action, int player, uint32_t button) {
+SOREN_EXPORT void action_map_add_gamepad_button(int action, int player, uint32_t button) {
     ActionMap* map = action_manager_get_map(action, player);
     GamepadAction gamepad_action = (GamepadAction){ .gamepad = GAMEPAD_CHECK_ALL, .button = button };
     gamepad_action_list_add(&map->buttons, gamepad_action);
 }
 
-void action_map_add_gamepad_button_ext(int action, int player, uint32_t button, int controller_index) {
+SOREN_EXPORT void action_map_add_gamepad_button_ext(int action, int player, uint32_t button, int controller_index) {
     ActionMap* map = action_manager_get_map(action, player);
     GamepadAction gamepad_action = (GamepadAction){ .gamepad = controller_index, .button = button };
     gamepad_action_list_add(&map->buttons, gamepad_action);
 }
 
-void action_map_add_mouse_button(int action, int player, MouseButtons button) {
+SOREN_EXPORT void action_map_add_mouse_button(int action, int player, MouseButtons button) {
     ActionMap* map = action_manager_get_map(action, player);
     mouse_button_list_add(&map->mouse_buttons, button);
 }
 
-bool action_map_remove_key(int action, int player, SDL_Scancode key) {
+SOREN_EXPORT bool action_map_remove_key(int action, int player, SDL_Scancode key) {
     ActionMap* map = action_manager_get_map(action, player);
     for(int i = 0; i < map->keys.count; i++) {
         if (map->keys.buffer[i] == key) {
@@ -46,7 +46,7 @@ bool action_map_remove_key(int action, int player, SDL_Scancode key) {
     return false;
 }
 
-bool action_map_remove_gamepad_button(int action, int player, uint32_t button) {
+SOREN_EXPORT bool action_map_remove_gamepad_button(int action, int player, uint32_t button) {
     ActionMap* map = action_manager_get_map(action, player);
     for(int i = 0; i < map->buttons.count; i++) {
         if (map->buttons.buffer[i].button == button) {
@@ -58,7 +58,7 @@ bool action_map_remove_gamepad_button(int action, int player, uint32_t button) {
     return false;
 }
 
-bool action_map_remove_gamepad_button_ext(int action, int player, uint32_t button, int controller_index) {
+SOREN_EXPORT bool action_map_remove_gamepad_button_ext(int action, int player, uint32_t button, int controller_index) {
     ActionMap* map = action_manager_get_map(action, player);
 
     GamepadAction gamepad_action;
@@ -72,7 +72,7 @@ bool action_map_remove_gamepad_button_ext(int action, int player, uint32_t butto
     return false;
 }
 
-bool action_map_remove_mouse_button(int action, int player, MouseButtons button) {
+SOREN_EXPORT bool action_map_remove_mouse_button(int action, int player, MouseButtons button) {
     ActionMap* map = action_manager_get_map(action, player);
     for(int i = 0; i < map->keys.count; i++) {
         if (map->mouse_buttons.buffer[i] == button) {
@@ -84,24 +84,24 @@ bool action_map_remove_mouse_button(int action, int player, MouseButtons button)
     return false;
 }
 
-void action_map_clear(int action, int player) {
+SOREN_EXPORT void action_map_clear(int action, int player) {
     ActionMap* map = action_manager_get_map(action, player);
     scancode_list_clear(&map->keys);
     gamepad_action_list_clear(&map->buttons);
     mouse_button_list_clear(&map->mouse_buttons);
 }
 
-bool action_check_impl(int action, int player) {
+SOREN_EXPORT bool action_check_impl(int action, int player) {
     ActionMap* map = action_manager_get_map(action, player);
     return map->current_pressed;
 }
 
-bool action_check_pressed_impl(int action, int player) {
+SOREN_EXPORT bool action_check_pressed_impl(int action, int player) {
     ActionMap* map = action_manager_get_map(action, player);
     return map->current_pressed && !map->previous_pressed;
 }
 
-bool action_check_released_impl(int action, int player) {
+SOREN_EXPORT bool action_check_released_impl(int action, int player) {
     ActionMap* map = action_manager_get_map(action, player);
     return !map->current_pressed && map->previous_pressed;
 }
@@ -140,7 +140,7 @@ static void action_map_update(ActionMap* map) {
     map->current_pressed = false;
 }
 
-void action_manager_update(void) {
+SOREN_EXPORT void action_manager_update(void) {
     int count = action_manager.action_count * action_manager.player_count;
     for (int i = 0; i < count; i++) {
         action_map_update(action_manager.actions + i);
@@ -177,7 +177,7 @@ static void action_map_free_resources(ActionMap* map) {
     mouse_button_list_free_resources(&map->mouse_buttons);
 }
 
-bool action_manager_init(int action_count, int player_count) {
+SOREN_EXPORT bool action_manager_init(int action_count, int player_count) {
     int total = action_count * player_count;
     action_manager.actions = soren_malloc(total * sizeof(*action_manager.actions));
     if (!action_manager.actions) {

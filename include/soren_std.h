@@ -1,6 +1,22 @@
 #ifndef SOREN_STD_H
 #define SOREN_STD_H
 
+#ifdef SOREN_BUILD
+    #if defined(_WIN32)
+        #define SOREN_EXPORT __declspec(dllexport)
+    #elif defined(__ELF__)
+        #define SOREN_EXPORT __attribute__((visibility ("default")))
+    #else
+        #define SOREN_EXPORT
+    #endif
+#else
+    #if defined(_WIN32)
+        #define SOREN_EXPORT __declspec(dllimport)
+    #else
+        #define SOREN_EXPORT
+    #endif
+#endif
+
 #include "e4c/e4c.h"
 
 E4C_DECLARE_EXCEPTION(NotImplementedException);
@@ -48,6 +64,11 @@ static inline void soren_free(void* ptr) {
 #define gds_free soren_free
 #define gds_assert_arg E4C_ASSERT
 #define gds_assert_bounds E4C_ASSERT
+
+#define sso_string_malloc soren_malloc
+#define sso_string_realloc soren_realloc
+#define sso_string_calloc soren_calloc
+#define sso_string_free soren_free
 
 #else
 

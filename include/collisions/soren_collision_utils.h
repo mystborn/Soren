@@ -4,32 +4,32 @@
 #include "../soren_math.h"
 #include "soren_colliders.h"
 
-void collisions_build_box(Vector* points, float width, float height);
+SOREN_EXPORT void collisions_build_box(Vector* points, float width, float height);
 
-Vector collisions_polygon_find_center(Vector* points, int count);
+SOREN_EXPORT Vector collisions_polygon_find_center(Vector* points, int count);
 
-Vector collisions_get_farthest_point_in_direction(
+SOREN_EXPORT Vector collisions_get_farthest_point_in_direction(
     Vector* points, 
     int count, 
     Vector direction);
 
-Vector collisions_get_closest_point_on_polygon_to_point(
+SOREN_EXPORT Vector collisions_get_closest_point_on_polygon_to_point(
     Vector* points,
     int count,
     Vector point,
     float* out_distance_squared);
 
-Vector collisions_get_closest_point_on_polygon_to_point_ext(
+SOREN_EXPORT Vector collisions_get_closest_point_on_polygon_to_point_ext(
     Vector* points,
     int count,
     Vector point,
     float* out_distance_squared,
     Vector* out_edge_normal);
 
-PolygonCollider* polygon_collider_create_convex_from_points(
+SOREN_EXPORT PolygonCollider* polygon_collider_create_convex_from_points(
     Vector* points,
     int count);
 
-Vector collisions_closest_point_on_line(Vector start, Vector end, Vector closest);
+SOREN_EXPORT Vector collisions_closest_point_on_line(Vector start, Vector end, Vector closest);
 
 #endif

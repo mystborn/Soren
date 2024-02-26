@@ -548,6 +548,7 @@ E4C_DEFINE_EXCEPTION(ContextNotEnded,                   DESC_NOT_ENDED,         
  */
 
 /*@-redecl@*/
+E4C_EXPORT 
 long
 e4c_library_version(
     void
@@ -964,6 +965,7 @@ _e4c_environment_get_current(
  */
 
 /*@-redecl@*/
+E4C_EXPORT
 void
 e4c_context_begin(
     E4C_BOOL                    handle_signals
@@ -1013,6 +1015,7 @@ e4c_context_begin(
 /*@=redecl@*/
 
 /*@-redecl@*/
+E4C_EXPORT
 void
 e4c_context_end(
     void
@@ -1064,6 +1067,7 @@ e4c_context_end(
 /*@=redecl@*/
 
 /*@-redecl@*/
+E4C_EXPORT
 E4C_BOOL
 e4c_context_is_ready(
     void
@@ -1098,6 +1102,7 @@ e4c_context_is_ready(
 
 /*@-redecl@*/
 /*@observer@*/ /*@null@*/
+E4C_EXPORT
 const e4c_signal_mapping *
 e4c_context_get_signal_mappings(
     void
@@ -1148,6 +1153,7 @@ e4c_context_get_signal_mappings(
 /*@=redecl@*/
 
 /*@-redecl@*/
+E4C_EXPORT
 void
 e4c_context_set_signal_mappings(
     /*@in@*/ /*@dependent@*/ /*@null@*/
@@ -1200,6 +1206,7 @@ e4c_context_set_signal_mappings(
 /*@=redecl@*/
 
 /*@-redecl@*/
+E4C_EXPORT
 void
 e4c_context_set_handlers(
     /*@dependent@*/ /*@null@*/
@@ -1505,6 +1512,7 @@ _e4c_context_get_current(
  */
 
 /*@-redecl@*/
+E4C_EXPORT
 e4c_status
 e4c_get_status(
     void
@@ -1555,6 +1563,7 @@ e4c_get_status(
 
 /*@-redecl@*/
 /*@notnull@*/ /*@temp@*/
+E4C_EXPORT
 e4c_continuation *
 e4c_frame_first_stage_(
     enum e4c_frame_stage_       stage,
@@ -1612,6 +1621,7 @@ e4c_frame_first_stage_(
 /*@=redecl@*/
 
 /*@-redecl@*/
+E4C_EXPORT
 E4C_BOOL
 e4c_frame_next_stage_(
     void
@@ -1657,6 +1667,7 @@ e4c_frame_next_stage_(
 /*@=redecl@*/
 
 /*@-redecl@*/
+E4C_EXPORT
 e4c_frame_stage
 e4c_frame_get_stage_(
     /*@in@*/ /*@observer@*/ /*@null@*/
@@ -1710,6 +1721,7 @@ e4c_frame_get_stage_(
 /*@=redecl@*/
 
 /*@-redecl@*/
+E4C_EXPORT
 E4C_BOOL
 e4c_frame_catch_(
     /*@in@*/ /*@temp@*/ /*@null@*/
@@ -1768,7 +1780,9 @@ e4c_frame_catch_(
 /*@=redecl@*/
 
 /*@-redecl@*/
-/*@maynotreturn@*/ void
+/*@maynotreturn@*/
+E4C_EXPORT
+void
 e4c_frame_repeat_(
     int                         max_repeat_attempts,
     enum e4c_frame_stage_       stage,
@@ -1918,6 +1932,7 @@ _e4c_frame_initialize(
  */
 
 /*@-redecl@*/
+E4C_EXPORT
 void
 e4c_print_exception_type(
     /*@in@*/ /*@shared@*/ /*@notnull@*/
@@ -1966,6 +1981,7 @@ e4c_print_exception_type(
 /*@=redecl@*/
 
 /*@-redecl@*/
+E4C_EXPORT
 E4C_BOOL
 e4c_is_instance_of(
     /*@in@*/ /*@temp@*/ /*@notnull@*/
@@ -2040,6 +2056,7 @@ _e4c_exception_type_extends(
  */
 
 /*@-redecl@*/
+E4C_EXPORT
 void
 e4c_print_exception(
     /*@in@*/ /*@temp@*/ /*@notnull@*/
@@ -2097,6 +2114,7 @@ e4c_print_exception(
 
 /*@-redecl@*/
 /*@observer@*/ /*@relnull@*/
+E4C_EXPORT
 const e4c_exception *
 e4c_get_exception(
     void
@@ -2149,6 +2167,7 @@ e4c_get_exception(
 
 /*@-redecl@*/
 /*@noreturn@*/
+E4C_EXPORT
 void
 e4c_exception_throw_verbatim_(
     /*@in@*/ /*@shared@*/ /*@notnull@*/
@@ -2216,6 +2235,7 @@ E4C_NO_RETURN;
 
 /*@-redecl@*/
 /*@noreturn@*/
+E4C_EXPORT
 void
 e4c_exception_throw_format_(
     /*@in@*/ /*@shared@*/ /*@notnull@*/
@@ -2642,6 +2662,7 @@ static E4C_INLINE void _e4c_library_fatal_error(const e4c_exception_type * excep
     /*@=noeffectuncon@*/
 }
 
+E4C_EXPORT
 long e4c_library_version(void){
 
     return( (long)E4C_VERSION_NUMBER );
@@ -2823,6 +2844,7 @@ static E4C_INLINE e4c_context * _e4c_context_get_current(void){
 }
 
 /* e4c_context_begin (multi-thread) */
+E4C_EXPORT
 void e4c_context_begin(E4C_BOOL handle_signals){
 
     e4c_environment * environment;
@@ -2853,6 +2875,7 @@ void e4c_context_begin(E4C_BOOL handle_signals){
 }
 
 /* e4c_context_end (multi-thread) */
+E4C_EXPORT
 void e4c_context_end(void){
 
     e4c_context *       context;
@@ -2896,6 +2919,7 @@ void e4c_context_end(void){
 # else
 
 /* e4c_context_begin (single-thread) */
+E4C_EXPORT
 void e4c_context_begin(E4C_BOOL handle_signals){
 
     INITIALIZE_ONCE;
@@ -2922,6 +2946,7 @@ void e4c_context_begin(E4C_BOOL handle_signals){
 }
 
 /* e4c_context_end (single-thread) */
+E4C_EXPORT
 void e4c_context_end(void){
 
     e4c_context *       context;
@@ -3044,6 +3069,7 @@ static void _e4c_context_at_uncaught_exception(e4c_context * context, const e4c_
     }
 }
 
+E4C_EXPORT
 void e4c_context_set_handlers(e4c_uncaught_handler uncaught_handler, void * custom_data, e4c_initialize_handler initialize_handler, e4c_finalize_handler finalize_handler){
 
     e4c_context * context;
@@ -3064,6 +3090,7 @@ void e4c_context_set_handlers(e4c_uncaught_handler uncaught_handler, void * cust
     }
 }
 
+E4C_EXPORT
 void e4c_context_set_signal_mappings(const e4c_signal_mapping * mappings){
 
     e4c_context * context;
@@ -3079,6 +3106,7 @@ void e4c_context_set_signal_mappings(const e4c_signal_mapping * mappings){
     _e4c_context_set_signal_handlers(context, mappings);
 }
 
+E4C_EXPORT
 const e4c_signal_mapping * e4c_context_get_signal_mappings(void){
 
     e4c_context * context;
@@ -3095,6 +3123,7 @@ const e4c_signal_mapping * e4c_context_get_signal_mappings(void){
     E4C_UNREACHABLE_RETURN(NULL);
 }
 
+E4C_EXPORT
 E4C_BOOL e4c_context_is_ready(void){
 
     return(E4C_CONTEXT != NULL);
@@ -3103,6 +3132,7 @@ E4C_BOOL e4c_context_is_ready(void){
 /* FRAME
  ================================================================ */
 
+E4C_EXPORT
 e4c_continuation * e4c_frame_first_stage_(e4c_frame_stage stage, const char * file, int line, const char * function){
 
     e4c_context *   context;
@@ -3179,6 +3209,7 @@ static E4C_INLINE void _e4c_frame_deallocate(e4c_frame * frame, e4c_finalize_han
     }
 }
 
+E4C_EXPORT
 e4c_frame_stage e4c_frame_get_stage_(const char * file, int line, const char * function){
 
     e4c_context * context;
@@ -3197,6 +3228,7 @@ e4c_frame_stage e4c_frame_get_stage_(const char * file, int line, const char * f
     return(context->current_frame->stage);
 }
 
+E4C_EXPORT
 E4C_BOOL e4c_frame_catch_(const e4c_exception_type * exception_type, const char * file, int line, const char * function){
 
     e4c_context *   context;
@@ -3247,6 +3279,7 @@ E4C_BOOL e4c_frame_catch_(const e4c_exception_type * exception_type, const char 
     E4C_UNREACHABLE_RETURN(E4C_FALSE);
 }
 
+E4C_EXPORT
 E4C_BOOL e4c_frame_next_stage_(void){
 
     e4c_context *   context;
@@ -3314,6 +3347,7 @@ E4C_BOOL e4c_frame_next_stage_(void){
     return(E4C_FALSE);
 }
 
+E4C_EXPORT
 void e4c_frame_repeat_(int max_repeat_attempts, e4c_frame_stage stage, const char * file, int line, const char * function){
 
     e4c_context *       context;
@@ -3392,6 +3426,7 @@ void e4c_frame_repeat_(int max_repeat_attempts, e4c_frame_stage stage, const cha
     E4C_CONTINUE(frame->continuation);
 }
 
+E4C_EXPORT
 e4c_status e4c_get_status(void){
 
     e4c_context *   context;
@@ -3442,6 +3477,7 @@ static E4C_INLINE E4C_BOOL _e4c_exception_type_extends(const e4c_exception_type 
     return(E4C_FALSE);
 }
 
+E4C_EXPORT
 E4C_BOOL e4c_is_instance_of(const e4c_exception * instance, const e4c_exception_type * exception_type){
 
     if(instance == NULL || instance->type == NULL || exception_type == NULL){
@@ -3484,6 +3520,7 @@ static E4C_INLINE void _e4c_print_exception_type(const e4c_exception_type * exce
     fprintf(stderr, "%s\n", separator);
 }
 
+E4C_EXPORT
 void e4c_print_exception_type(const e4c_exception_type * exception_type){
 
     if(exception_type == NULL){
@@ -3498,6 +3535,7 @@ void e4c_print_exception_type(const e4c_exception_type * exception_type){
 /* EXCEPTION
  ================================================================ */
 
+E4C_EXPORT
 const e4c_exception * e4c_get_exception(void){
 
     e4c_context *   context;
@@ -3554,6 +3592,7 @@ static E4C_INLINE e4c_exception * _e4c_exception_throw(e4c_frame * frame, const 
     return(new_exception);
 }
 
+E4C_EXPORT
 void e4c_exception_throw_verbatim_(const e4c_exception_type * exception_type, const char * file, int line, const char * function, const char * message){
 
     int                 error_number;
@@ -3595,6 +3634,7 @@ void e4c_exception_throw_verbatim_(const e4c_exception_type * exception_type, co
 
 # if defined(HAVE_C99_VSNPRINTF) || defined(HAVE_VSNPRINTF)
 
+E4C_EXPORT
 void e4c_exception_throw_format_(const e4c_exception_type * exception_type, const char * file, int line, const char * function, const char * format, ...){
 
     int                 error_number;
@@ -3772,6 +3812,7 @@ static void _e4c_print_exception(const e4c_exception * exception){
     (void)fflush(stderr);
 }
 
+E4C_EXPORT
 void e4c_print_exception(const e4c_exception * exception){
 
     if(exception == NULL){

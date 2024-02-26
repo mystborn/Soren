@@ -5,6 +5,9 @@
  * DISCLAIMER: This has been modified by mystborn in order to replace
  *             the default allocation functions with GC enabled alloc
  *             functions.
+ *             
+ *             Additional changes have been made to properly export the
+ *             functions to a DLL on Windows.
  *
  * exceptions4c header file
  *
@@ -56,6 +59,21 @@
 # ifndef EXCEPTIONS4C
 # define EXCEPTIONS4C
 
+#ifdef E4C_BUILD
+    #if defined(_WIN32)
+        #define E4C_EXPORT __declspec(dllexport)
+    #elif defined(__ELF__)
+        #define E4C_EXPORT __attribute__((visibility ("default")))
+    #else
+        #define E4C_EXPORT
+    #endif
+#else
+    #if defined(_WIN32)
+        #define E4C_EXPORT __declspec(dllimport)
+    #else
+        #define E4C_EXPORT
+    #endif
+#endif
 
 # define E4C_VERSION_(version)          version(3, 0, 6)
 
@@ -1801,7 +1819,7 @@
  */
 # define E4C_DECLARE_EXCEPTION(name) \
     \
-    extern const e4c_exception_type name
+    E4C_EXPORT extern const e4c_exception_type name
 
 /**
  * Defines an exception type
@@ -2890,7 +2908,9 @@ E4C_DECLARE_EXCEPTION(ProgramSignal2Exception);
  * @see     #e4c_using_context
  * @see     #e4c_reusing_context
  */
-/*@unused@*/ extern
+/*@unused@*/
+E4C_EXPORT
+extern
 E4C_BOOL
 e4c_context_is_ready(
     void
@@ -2954,7 +2974,9 @@ e4c_context_is_ready(
  * @see     #e4c_print_exception
  * @see     #e4c_context_set_handlers
  */
-/*@unused@*/ extern
+/*@unused@*/
+E4C_EXPORT
+extern
 void
 e4c_context_begin(
     E4C_BOOL                    handle_signals
@@ -2988,7 +3010,9 @@ e4c_context_begin(
  * @see     #e4c_using_context
  * @see     #e4c_reusing_context
  */
-/*@unused@*/ extern
+/*@unused@*/
+E4C_EXPORT
+extern
 void
 e4c_context_end(
     void
@@ -3048,7 +3072,9 @@ e4c_context_end(
  * @see     #e4c_exception
  * @see     #e4c_print_exception
  */
-/*@unused@*/ extern
+/*@unused@*/
+E4C_EXPORT
+extern
 void
 e4c_context_set_handlers(
     /*@dependent@*/ /*@null@*/
@@ -3091,7 +3117,9 @@ e4c_context_set_handlers(
  * @see     #e4c_signal_mapping
  * @see     #e4c_default_signal_mappings
  */
-/*@unused@*/ extern
+/*@unused@*/
+E4C_EXPORT
+extern
 void
 e4c_context_set_signal_mappings(
     /*@dependent@*/ /*@null@*/
@@ -3124,7 +3152,9 @@ e4c_context_set_signal_mappings(
  * @see     #e4c_signal_mapping
  * @see     #e4c_default_signal_mappings
  */
-/*@unused@*/ extern
+/*@unused@*/
+E4C_EXPORT
+extern
 /*@observer@*/ /*@null@*/
 const e4c_signal_mapping *
 e4c_context_get_signal_mappings(
@@ -3162,7 +3192,9 @@ e4c_context_get_signal_mappings(
  * @see     #e4c_status
  * @see     #finally
  */
-/*@unused@*/ extern
+/*@unused@*/
+E4C_EXPORT
+extern
 e4c_status
 e4c_get_status(
     void
@@ -3228,7 +3260,9 @@ e4c_get_status(
  * @see     #catch
  * @see     #finally
  */
-/*@unused@*/ extern
+/*@unused@*/
+E4C_EXPORT
+extern
 /*@observer@*/ /*@relnull@*/
 const e4c_exception *
 e4c_get_exception(
@@ -3272,7 +3306,9 @@ e4c_get_exception(
  *
  * @see     #E4C_VERSION_NUMBER
  */
-/*@unused@*/ extern
+/*@unused@*/
+E4C_EXPORT
+extern
 long
 e4c_library_version(
     void
@@ -3320,7 +3356,9 @@ e4c_library_version(
  * @see     #e4c_exception_type
  * @see     #e4c_get_exception
  */
-/*@unused@*/ extern
+/*@unused@*/
+E4C_EXPORT
+extern
 E4C_BOOL
 e4c_is_instance_of(
     /*@temp@*/ /*@notnull@*/
@@ -3355,7 +3393,9 @@ e4c_is_instance_of(
  * @see     #e4c_context_begin
  * @see     #e4c_using_context
  */
-/*@unused@*/ extern
+/*@unused@*/
+E4C_EXPORT
+extern
 void
 e4c_print_exception(
     /*@temp@*/ /*@notnull@*/
@@ -3408,7 +3448,9 @@ e4c_print_exception(
  *
  * @see     #e4c_exception_type
  */
-/*@unused@*/ extern
+/*@unused@*/ 
+E4C_EXPORT
+extern
 void
 e4c_print_exception_type(
     /*@shared@*/ /*@notnull@*/
@@ -3434,7 +3476,9 @@ e4c_print_exception_type(
  * directly (but through the "keywords").
  */
 
-/*@unused@*/ extern
+/*@unused@*/ 
+E4C_EXPORT
+extern
 /*@notnull@*/ /*@temp@*/
 struct e4c_continuation_ *
 e4c_frame_first_stage_(
@@ -3457,7 +3501,9 @@ e4c_frame_first_stage_(
 @*/
 ;
 
-/*@unused@*/ extern
+/*@unused@*/
+E4C_EXPORT
+extern
 E4C_BOOL
 e4c_frame_next_stage_(
     void
@@ -3474,7 +3520,9 @@ e4c_frame_next_stage_(
 @*/
 ;
 
-/*@unused@*/ extern
+/*@unused@*/
+E4C_EXPORT
+extern
 enum e4c_frame_stage_
 e4c_frame_get_stage_(
     /*@observer@*/ /*@null@*/
@@ -3493,7 +3541,9 @@ e4c_frame_get_stage_(
 @*/
 ;
 
-/*@unused@*/ extern
+/*@unused@*/
+E4C_EXPORT
+extern
 E4C_BOOL
 e4c_frame_catch_(
     /*@temp@*/ /*@null@*/
@@ -3516,7 +3566,9 @@ e4c_frame_catch_(
 @*/
 ;
 
-/*@unused@*/ /*@maynotreturn@*/ extern
+/*@unused@*/ /*@maynotreturn@*/
+E4C_EXPORT
+extern
 void
 e4c_frame_repeat_(
     int                         max_repeat_attempts,
@@ -3539,7 +3591,9 @@ e4c_frame_repeat_(
 @*/
 ;
 
-/*@unused@*/ /*@noreturn@*/ extern
+/*@unused@*/ /*@noreturn@*/
+E4C_EXPORT
+extern
 void
 e4c_exception_throw_verbatim_(
     /*@shared@*/ /*@notnull@*/
@@ -3567,7 +3621,9 @@ E4C_NO_RETURN;
 
 # if defined(HAVE_C99_VSNPRINTF) || defined(HAVE_VSNPRINTF)
 
-/*@unused@*/ /*@noreturn@*/ extern
+/*@unused@*/ /*@noreturn@*/
+E4C_EXPORT
+extern
 void
 e4c_exception_throw_format_(
     /*@shared@*/ /*@notnull@*/

@@ -7,7 +7,7 @@ EVENT_DEFINE_C(GamepadConnectionEvent, ganepad_connection_event)
 InputManager input_manager = {0};
 static bool input_manager_initialized = false;
 
-bool input_manager_init(void) {
+SOREN_EXPORT bool input_manager_init(void) {
     if (input_manager_initialized) {
         return false;
     }
@@ -39,7 +39,7 @@ bool input_manager_init(void) {
     return true;
 }
 
-void input_manager_update(void) {
+SOREN_EXPORT void input_manager_update(void) {
     input_manager.mouse_previous = input_manager.mouse_current;
     input_manager.mouse_position_previous = input_manager.mouse_position_current;
 
@@ -71,7 +71,7 @@ void input_manager_update(void) {
     list_iter_end
 }
 
-void input_manager_event(SDL_Event* event) {
+SOREN_EXPORT void input_manager_event(SDL_Event* event) {
     switch (event->type) {
         case SDL_EVENT_GAMEPAD_ADDED:
             int controller = gamepad_open(event->gdevice.which);
@@ -113,7 +113,7 @@ void input_manager_event(SDL_Event* event) {
     }
 }
 
-void input_manager_free(void) {
+SOREN_EXPORT void input_manager_free(void) {
     ecs_dispenser_free(&input_manager.gamepad_index_dispenser);
     int_list_free(input_manager.connected_gamepads);
 }

@@ -18,7 +18,7 @@ static inline bool gamepad_check_released_impl(int button, Gamepad* gamepad) {
         && (GAMEPAD_BUTTON(button) & gamepad->button_previous) != 0;
 }
 
-bool gamepad_check_index(int button, int controller) {
+SOREN_EXPORT bool gamepad_check_index(int button, int controller) {
     if (controller == GAMEPAD_CHECK_ALL) {
         int index;
         list_iter_start(input_manager.connected_gamepads, index) {
@@ -44,7 +44,7 @@ bool gamepad_check_index(int button, int controller) {
     return gamepad_check_impl(button, &input_manager.gamepads[controller]);
 }
 
-bool gamepad_check_pressed_index(int button, int controller) {
+SOREN_EXPORT bool gamepad_check_pressed_index(int button, int controller) {
     if (controller == GAMEPAD_CHECK_ALL) {
         int index;
         list_iter_start(input_manager.connected_gamepads, index) {
@@ -70,7 +70,7 @@ bool gamepad_check_pressed_index(int button, int controller) {
     return gamepad_check_pressed_impl(button, &input_manager.gamepads[controller]);
 }
 
-bool gamepad_check_released_index(int button, int controller) {
+SOREN_EXPORT bool gamepad_check_released_index(int button, int controller) {
     if (controller == GAMEPAD_CHECK_ALL) {
         int index;
         list_iter_start(input_manager.connected_gamepads, index) {
@@ -116,7 +116,7 @@ static inline bool gamepad_axis_outside_deadzone(SDL_GamepadAxis axis, Gamepad* 
     return false;
 }
 
-int16_t gamepad_axis_value_index(SDL_GamepadAxis axis, int controller) {
+SOREN_EXPORT int16_t gamepad_axis_value_index(SDL_GamepadAxis axis, int controller) {
     if (controller == GAMEPAD_CHECK_FIRST) {
         controller = input_manager.connected_gamepads->count != 0
             ? int_list_get(input_manager.connected_gamepads, 0)
@@ -140,7 +140,7 @@ int16_t gamepad_axis_value_index(SDL_GamepadAxis axis, int controller) {
     return 0;
 }
 
-int16_t gamepad_stick_get_deadzone(SDL_GamepadButton stick, int controller) {
+SOREN_EXPORT int16_t gamepad_stick_get_deadzone(SDL_GamepadButton stick, int controller) {
     if (stick != SDL_GAMEPAD_BUTTON_LEFT_STICK
         && stick != SDL_GAMEPAD_BUTTON_RIGHT_STICK)
     {
@@ -169,7 +169,7 @@ int16_t gamepad_stick_get_deadzone(SDL_GamepadButton stick, int controller) {
     }
 }
 
-void gamepad_stick_set_deadzone(SDL_GamepadButton stick, int16_t deadzone, int controller) {
+SOREN_EXPORT void gamepad_stick_set_deadzone(SDL_GamepadButton stick, int16_t deadzone, int controller) {
     if (stick != SDL_GAMEPAD_BUTTON_LEFT_STICK
         && stick != SDL_GAMEPAD_BUTTON_RIGHT_STICK)
     {
@@ -198,7 +198,7 @@ void gamepad_stick_set_deadzone(SDL_GamepadButton stick, int16_t deadzone, int c
     }
 }
 
-SDL_Gamepad* gamepad_get_raw(int controller) {
+SOREN_EXPORT SDL_Gamepad* gamepad_get_raw(int controller) {
     if (controller == GAMEPAD_CHECK_FIRST) {
         controller = input_manager.connected_gamepads->count != 0
             ? int_list_get(input_manager.connected_gamepads, 0)
@@ -215,7 +215,7 @@ SDL_Gamepad* gamepad_get_raw(int controller) {
     return input_manager.gamepads[controller].gamepad;
 }
 
-GamepadConnectionEvent* gamepad_connected_event(void) {
+SOREN_EXPORT GamepadConnectionEvent* gamepad_connected_event(void) {
     if (gamepad_connect_events_init) {
         gamepad_connection_event_init(&input_manager.gamepad_connected);
         gamepad_connection_event_init(&input_manager.gamepad_disconnected);
@@ -224,7 +224,7 @@ GamepadConnectionEvent* gamepad_connected_event(void) {
     return &input_manager.gamepad_connected;
 }
 
-GamepadConnectionEvent* gamepad_disconnected_event(void) {
+SOREN_EXPORT GamepadConnectionEvent* gamepad_disconnected_event(void) {
     if (gamepad_connect_events_init) {
         gamepad_connection_event_init(&input_manager.gamepad_connected);
         gamepad_connection_event_init(&input_manager.gamepad_disconnected);

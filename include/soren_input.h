@@ -49,50 +49,50 @@ typedef struct GamepadAction {
 
 EVENT_DEFINE_1_H(GamepadConnectionEvent, gamepad_connection_event, int)
 
-bool key_check(SDL_Scancode key);
-bool key_check_pressed(SDL_Scancode key);
-bool key_check_released(SDL_Scancode key);
+SOREN_EXPORT bool key_check(SDL_Scancode key);
+SOREN_EXPORT bool key_check_pressed(SDL_Scancode key);
+SOREN_EXPORT bool key_check_released(SDL_Scancode key);
 
-bool mouse_check(MouseButtons button);
-Vector mouse_position(void);
-bool mouse_check_pressed(MouseButtons button);
-bool mouse_check_released(MouseButtons button);
-bool mouse_moved(void);
+SOREN_EXPORT bool mouse_check(MouseButtons button);
+SOREN_EXPORT Vector mouse_position(void);
+SOREN_EXPORT bool mouse_check_pressed(MouseButtons button);
+SOREN_EXPORT bool mouse_check_released(MouseButtons button);
+SOREN_EXPORT bool mouse_moved(void);
 
-bool gamepad_check_index(int button, int controller);
-bool gamepad_check_pressed_index(int button, int controller);
-bool gamepad_check_released_index(int button, int controller);
+SOREN_EXPORT bool gamepad_check_index(int button, int controller);
+SOREN_EXPORT bool gamepad_check_pressed_index(int button, int controller);
+SOREN_EXPORT bool gamepad_check_released_index(int button, int controller);
 
-int16_t gamepad_axis_value_index(SDL_GamepadAxis axis, int controller);
-int16_t gamepad_stick_get_deadzone(SDL_GamepadButton stick, int controller);
-void gamepad_stick_set_deadzone(SDL_GamepadButton stick, int16_t deadzone, int controller);
-SDL_Gamepad* gamepad_get_raw(int controller);
+SOREN_EXPORT int16_t gamepad_axis_value_index(SDL_GamepadAxis axis, int controller);
+SOREN_EXPORT int16_t gamepad_stick_get_deadzone(SDL_GamepadButton stick, int controller);
+SOREN_EXPORT void gamepad_stick_set_deadzone(SDL_GamepadButton stick, int16_t deadzone, int controller);
+SOREN_EXPORT SDL_Gamepad* gamepad_get_raw(int controller);
 
-GamepadConnectionEvent* gamepad_connected_event(void);
-GamepadConnectionEvent* gamepad_disconnected_event(void);
+SOREN_EXPORT GamepadConnectionEvent* gamepad_connected_event(void);
+SOREN_EXPORT GamepadConnectionEvent* gamepad_disconnected_event(void);
 
-bool input_manager_init(void);
-void input_manager_update(void);
-void input_manager_event(SDL_Event* event);
-void input_manager_free(void);
+SOREN_EXPORT bool input_manager_init(void);
+SOREN_EXPORT void input_manager_update(void);
+SOREN_EXPORT void input_manager_event(SDL_Event* event);
+SOREN_EXPORT void input_manager_free(void);
 
-bool action_manager_init(int action_count, int player_count);
-void action_manager_update(void);
-void action_manager_free(void);
+SOREN_EXPORT bool action_manager_init(int action_count, int player_count);
+SOREN_EXPORT void action_manager_update(void);
+SOREN_EXPORT void action_manager_free(void);
 
-void action_map_add_key(int action, int player, SDL_Scancode key);
-void action_map_add_gamepad_button(int action, int player, uint32_t button);
-void action_map_add_gamepad_button_ext(int action, int player, uint32_t button, int controller_index);
-void action_map_add_mouse_button(int action, int player, MouseButtons button);
-bool action_map_remove_key(int action, int player, SDL_Scancode key);
-bool action_map_remove_gamepad_button(int action, int player, uint32_t button);
-bool action_map_remove_gamepad_button_ext(int action, int player, uint32_t button, int controller_index);
-bool action_map_remove_mouse_button(int action, int player, MouseButtons button);
-void action_map_clear(int action, int player);
+SOREN_EXPORT void action_map_add_key(int action, int player, SDL_Scancode key);
+SOREN_EXPORT void action_map_add_gamepad_button(int action, int player, uint32_t button);
+SOREN_EXPORT void action_map_add_gamepad_button_ext(int action, int player, uint32_t button, int controller_index);
+SOREN_EXPORT void action_map_add_mouse_button(int action, int player, MouseButtons button);
+SOREN_EXPORT bool action_map_remove_key(int action, int player, SDL_Scancode key);
+SOREN_EXPORT bool action_map_remove_gamepad_button(int action, int player, uint32_t button);
+SOREN_EXPORT bool action_map_remove_gamepad_button_ext(int action, int player, uint32_t button, int controller_index);
+SOREN_EXPORT bool action_map_remove_mouse_button(int action, int player, MouseButtons button);
+SOREN_EXPORT void action_map_clear(int action, int player);
 
-bool action_check_impl(int action, int player);
-bool action_check_pressed_impl(int action, int player);
-bool action_check_released_impl(int action, int player);
+SOREN_EXPORT bool action_check_impl(int action, int player);
+SOREN_EXPORT bool action_check_pressed_impl(int action, int player);
+SOREN_EXPORT bool action_check_released_impl(int action, int player);
 
 #define Z_SOREN_input_index_selector(arg1, ...) (arg1)
 

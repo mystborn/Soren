@@ -2,7 +2,7 @@ project('soren', 'c')
 
 cc = meson.get_compiler('c')
 
-compiler_args = ['/DSSO_STRING_BUILD', '/DSSO_STRING_MACROS="soren_std.h"', '/Zc:preprocessor']
+compiler_args = ['/DSSO_STRING_BUILD', '/DECS_BUILD', '/DSOREN_BUILD', '/DE4C_BUILD', '/DGDS_BUILD', '/DSSO_STRING_MACROS="soren_std.h"', '/Zc:preprocessor']
 
 include_files = [
     'submodules/GenericDataStructures/include',
@@ -75,4 +75,13 @@ soren_shared = shared_library(
     include_directories: inc,
     dependencies: deps,
     c_args: compiler_args
+)
+
+soren_playground = executable(
+    'soren_playground',
+    files(['./playground/playground.c']),
+    include_directories: inc,
+    dependencies: deps,
+    link_with: [soren_shared],
+    c_args: ['/Zc:preprocessor']
 )
