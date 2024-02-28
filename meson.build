@@ -90,7 +90,16 @@ soren_shared = shared_library(
 
 soren_playground = executable(
     'soren_playground',
-    files(['./playground/playground.c']),
+    files(['./playground/playground.c', './playground/run.c']),
+    include_directories: inc,
+    dependencies: deps,
+    link_with: [soren_shared],
+    c_args: ['/Zc:preprocessor']
+)
+
+camera_playground = executable(
+    'camera_playground',
+    files(['./playground/camera_playground.c', './playground/run.c']),
     include_directories: inc,
     dependencies: deps,
     link_with: [soren_shared],

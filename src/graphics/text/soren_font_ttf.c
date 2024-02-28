@@ -106,6 +106,8 @@ FontCharacterRegion* font_ttf_get_region(SDL_Renderer* renderer, FontImplTtf* fo
 
     SOREN_SDL_ASSERT(texture);
 
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+
     sdl_result = SDL_SetRenderTarget(renderer, texture);
     SOREN_SDL_ASSERT(sdl_result == 0);
 
@@ -148,7 +150,7 @@ FontCharacterRegion* font_ttf_get_region(SDL_Renderer* renderer, FontImplTtf* fo
             float glyph_width = (float)(maxx - minx);
             float glyph_height = (float)(font->baseline - miny);
 
-            SDL_Surface* surface = TTF_RenderGlyph32_Blended(font->font, index, white);
+            SDL_Surface* surface = TTF_RenderGlyph32_Solid(font->font, index, white);
             SOREN_SDL_ASSERT(surface);
             SDL_Texture* glyph_texture = SDL_CreateTextureFromSurface(renderer, surface);
             SOREN_SDL_ASSERT(glyph_texture);
