@@ -176,6 +176,10 @@ static inline float vector_dot(Vector left, Vector right) {
     return left.x * right.x + left.y * right.y;
 }
 
+static inline float vector_cross(Vector left, Vector right) {
+    return left.x * right.y - left.y * right.x;
+}
+
 static inline uint32_t vector_hash(Vector* vector) {
     // Generate a simple hash code by reinterpreting the
     // vector fields as ints, then combining them.
@@ -720,7 +724,7 @@ static inline uint32_t rectf_hash(RectF rect) {
     return hash;
 }
 
-static inline String* rectf_to_string(Rect rect, String* str) {
+static inline String* rectf_to_string(RectF rect, String* str) {
     return string_format(str, "Rect { x: %f, y: %f, w: %f, h: %f }", rect.x, rect.y, rect.w, rect.h);
 }
 

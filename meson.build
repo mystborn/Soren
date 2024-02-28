@@ -10,6 +10,7 @@ include_files = [
     'submodules/sso_string/include',
     'include',
     '../SDL/include',
+    '../SDL_ttf/include',
     '../bdwgc/include'
 ]
 
@@ -34,17 +35,27 @@ sources = files([
     './src/collisions/soren_collision_utils.c',
     './src/collisions/soren_collisions.c',
     './src/e4c/e4c.c',
-    './src/soren_generics.c',
-    './src/soren_std.c',
+    './src/graphics/text/soren_font_ttf.c',
+    './src/graphics/text/soren_font.c',
+    './src/graphics/soren_graphics.c',
+    './src/graphics/soren_primitives.c',
     './src/input/soren_input.c',
     './src/input/soren_input_actions.c',
     './src/input/soren_input_gamepad.c',
-    './src/input/soren_input_mouse_and_keyboard.c'
+    './src/input/soren_input_mouse_and_keyboard.c',
+    './src/timing/soren_timer.c',
+    './src/soren_generics.c',
+    './src/soren_std.c'
 ])
 
 sdl = cc.find_library(
     'SDL3',
     dirs: ['C:/Users/chris/source/c/SDL/VisualC/x64/Debug'],
+    required: true)
+
+sdl_ttf = cc.find_library(
+    'SDL3_ttf',
+    dirs: ['C:/Users/chris/source/c/SDL_ttf/VisualC/x64/Debug'],
     required: true)
 
 cord = cc.find_library(
@@ -57,7 +68,7 @@ gc = cc.find_library(
     dirs: ['C:/Users/chris/source/c/bdwgc/out/x64/Release'],
     required: true)
 
-deps = [sdl, cord, gc]
+deps = [sdl, sdl_ttf, cord, gc]
 
 soren = static_library(
     'soren',

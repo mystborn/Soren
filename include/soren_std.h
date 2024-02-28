@@ -20,6 +20,9 @@
 #include "e4c/e4c.h"
 
 E4C_DECLARE_EXCEPTION(NotImplementedException);
+E4C_DECLARE_EXCEPTION(SdlException);
+
+#define SOREN_SDL_ASSERT(condition) if (!(condition)) throw(SdlException, SDL_GetError())
 
 #ifndef SOREN_MANUAL_MEMORY
 

@@ -15,5 +15,6 @@ LIST_DEFINE_H(ScancodeList, scancode_list, SDL_Scancode)
 LIST_DEFINE_H(GamepadButtonList, gamepad_button_list, uint32_t)
 LIST_DEFINE_H(GamepadActionList, gamepad_action_list, GamepadAction)
 LIST_DEFINE_H(MouseButtonList, mouse_button_list, MouseButtons)
+LIST_DEFINE_H(TextureList, texture_list, SDL_Texture*)
 
 #endif
