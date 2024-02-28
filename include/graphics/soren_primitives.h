@@ -3,6 +3,7 @@
 
 #include "../soren_std.h"
 #include "../soren_math.h"
+#include "soren_camera.h"
 
 SOREN_EXPORT void draw_polygon_rgba(SDL_Renderer* renderer, Vector* points, int points_count, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 SOREN_EXPORT void draw_polygon_color(SDL_Renderer* renderer, Vector* points, int points_count, SDL_Color color);
@@ -18,6 +19,8 @@ SOREN_EXPORT void draw_rect_color(SDL_Renderer* renderer, RectF Rect, SDL_Color 
 
 SOREN_EXPORT void draw_filled_rect_rgba(SDL_Renderer* renderer, RectF Rect, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 SOREN_EXPORT void draw_filled_rect_color(SDL_Renderer* renderer, RectF Rect, SDL_Color color);
+
+SOREN_EXPORT void camera_draw_filled_rect_rgba(Camera* camera, RectF Rect, SDL_Color color);
 
 SOREN_EXPORT void draw_circle_rgba(SDL_Renderer* renderer, Vector position, float radius, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 SOREN_EXPORT void draw_circle_color(SDL_Renderer* renderer, Vector position, float radius, SDL_Color color);

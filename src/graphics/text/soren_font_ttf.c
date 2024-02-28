@@ -106,13 +106,17 @@ FontCharacterRegion* font_ttf_get_region(SDL_Renderer* renderer, FontImplTtf* fo
 
     SOREN_SDL_ASSERT(texture);
 
-    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    sdl_result = SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    SOREN_SDL_ASSERT(sdl_result == 0);
 
     sdl_result = SDL_SetRenderTarget(renderer, texture);
     SOREN_SDL_ASSERT(sdl_result == 0);
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_RenderClear(renderer);
+    sdl_result = SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SOREN_SDL_ASSERT(sdl_result == 0);
+
+    sdl_result = SDL_RenderClear(renderer);
+    SOREN_SDL_ASSERT(sdl_result == 0);
 
     SDL_Color white = (SDL_Color){ 255, 255, 255, 255 };
 

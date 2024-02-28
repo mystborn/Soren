@@ -72,8 +72,7 @@ static void generate_polygon_vertices(
     bool* free_vertex_array,
     int** out_indices,
     int* out_index_count,
-    bool* free_index_array
-    )
+    bool* free_index_array)
 {
     if (vector_equals(points[0], points[points_count - 1])) {
         points_count -= 1;
@@ -284,6 +283,30 @@ SOREN_EXPORT void draw_filled_rect_rgba(SDL_Renderer* renderer, RectF rect, uint
 
 SOREN_EXPORT void draw_filled_rect_color(SDL_Renderer* renderer, RectF rect, SDL_Color color) {
     draw_filled_rect_rgba(renderer, rect, COLOR_DECONSTRUCT(color));
+}
+
+SOREN_EXPORT void camera_draw_filled_rect_color(Camera* camera, RectF rect, SDL_Color color) {
+    if (camera_rotation(camera) == 0) {
+        rect.x -= camera->bounds.x;
+        rect.y -= camera->bounds.y;
+
+        draw_filled_rect_color(camera->renderer, rect, color);
+    } else {
+        Vector points[4];
+        rectf_points(rect, points);
+        Matrix camera_transform = camera_view_matrix(camera);
+        vector_transform_batch(points, 4, points, &camera_transform);
+        SDL_Vertex vertices[4] = {
+            { .color = color, .position = points[0] },
+            { .color = color, .position = points[1] }, 
+            { .color = color, .position = points[2] }, 
+            { .color = color, .position = points[3] }
+        };
+
+        int indices[6] = { 0, 1, 2, 0, 2, 3 };
+        SDL_SetRenderDrawColor(camera->renderer, COLOR_DECONSTRUCT(color));
+        SDL_RenderGeometry(camera->renderer, NULL, vertices, 4, indices, 6);
+    }
 }
 
 static void draw_circle_pixels(SDL_Renderer* renderer, Vector center, float x, float y) {

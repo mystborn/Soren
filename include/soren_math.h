@@ -274,7 +274,7 @@ static inline Vector vector_transform(Vector vector, Matrix* matrix) {
     };
 }
 
-static inline Vector vector_transform_batch(
+static inline void vector_transform_batch(
     Vector* vectors,
     int vectors_count,
     Vector* result,
@@ -295,7 +295,7 @@ static inline Vector vector_transform_normal(Vector normal, Matrix* matrix) {
     };
 }
 
-static inline Vector vector_transform_normal_batch(
+static inline vector_transform_normal_batch(
     Vector* vectors,
     int vectors_count,
     Vector* result,
@@ -570,6 +570,28 @@ static inline Vector rectf_center(RectF rect) {
     };
 }
 
+static inline void rectf_points(RectF rect, Vector* points) {
+    points[0].x = rect.x;
+    points[0].y = rect.y;
+    points[1].x = rect.x + rect.w;
+    points[1].y = rect.y;
+    points[2].x = rect.x + rect.w;
+    points[2].y = rect.y + rect.h;
+    points[3].x = rect.x;
+    points[3].y = rect.y + rect.h;
+}
+
+static inline void rectf_vertices(RectF rect, SDL_Vertex* points) {
+    points[0].position.x = rect.x;
+    points[0].position.y = rect.y;
+    points[1].position.x = rect.x + rect.w;
+    points[1].position.y = rect.y;
+    points[2].position.x = rect.x + rect.w;
+    points[2].position.y = rect.y + rect.h;
+    points[3].position.x = rect.x;
+    points[3].position.y = rect.y + rect.h;
+}
+
 static inline bool rectf_contains_coords(RectF rect, float x, float y);
 static inline bool rectf_contains_point(RectF rect, Point point);
 static inline bool rectf_contains_vector(RectF rect, Vector point);
@@ -809,6 +831,9 @@ static inline Matrix matrix_create_tro(
         matrix_multiply(&result, &translate_matrix, &result);
     }
 
+    result.m31 += origin.x;
+    result.m32 += origin.y;
+
     return result;
 }
 
@@ -862,6 +887,9 @@ static inline Matrix matrix_create_trso(
         Matrix translate_matrix = matrix_create_translation(translate);
         matrix_multiply(&result, &translate_matrix, &result);
     }
+
+    result.m31 += origin.x;
+    result.m32 += origin.y;
 
     return result;
 }
@@ -921,7 +949,7 @@ static inline void matrix_multiply(Matrix* left, Matrix* right, Matrix* result) 
     float m21 = left->m21 * right->m11 + left->m22 * right->m21;
     float m22 = left->m21 * right->m12 + left->m22 * right->m22;
     float m31 = left->m31 * right->m11 + left->m32 * right->m21 + right->m31;
-    float m32 = left->m32 * right->m12 + left->m32 * right->m22 + right->m32;
+    float m32 = left->m31 * right->m12 + left->m32 * right->m22 + right->m32;
 
     result->m11 = m11;
     result->m12 = m12;
