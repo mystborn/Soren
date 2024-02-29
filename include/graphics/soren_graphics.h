@@ -1,12 +1,15 @@
 #ifndef SOREN_GRAPHICS_SOREN_GRAPHICS_H
 #define SOREN_GRAPHICS_SOREN_GRAPHICS_H
 
-#include "soren_std.h"
+#include "../soren_std.h"
+#include "soren_camera.h"
 
 #include <SDL3/SDL.h>
 
-SOREN_EXPORT void graphics_set_blend_mode_from_color(bool blend_from_color);
-SOREN_EXPORT void graphics_set_color(SDL_Renderer* renderer, SDL_Color color);
-SOREN_EXPORT void graphics_set_color_rgba(SDL_Renderer* renderer, int8_t r,  int8_t g, int8_t b, int8_t a);
+#define COLOR_DECONSTRUCT(color) color.r, color.g, color.b, color.a
+#define COLOR_CONSTRUCT(r, g, b, a) (SDL_Color){ r, g, b, a }
+
+SOREN_EXPORT void graphics_set_camera(Camera* camera);
+SOREN_EXPORT Camera* graphics_get_camera(void);
 
 #endif

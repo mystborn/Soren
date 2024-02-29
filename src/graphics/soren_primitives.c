@@ -1,7 +1,9 @@
 #include <graphics/soren_primitives.h>
+#include <graphics/soren_graphics.h>
+
 #include <soren_generics.h>
 
-#define COLOR_DECONSTRUCT(color) color.r, color.g, color.b, color.a
+
 #define PRIMITIVE_BLEND(a) a == 255 ? SDL_BLENDMODE_NONE : SDL_BLENDMODE_BLEND
 
 #define DRAW_CACHE_SIZE 32
@@ -74,7 +76,7 @@ static void generate_polygon_vertices(
     int* out_index_count,
     bool* free_index_array)
 {
-    if (vector_equals(points[0], points[points_count - 1])) {
+    if (points && vector_equals(points[0], points[points_count - 1])) {
         points_count -= 1;
     }
 
@@ -90,7 +92,9 @@ static void generate_polygon_vertices(
 
     for (int i = 0; i < points_count; i++) {
         (*out_vertices)[i].color = color;
-        (*out_vertices)[i].position = points[i];
+        if (points) {
+            (*out_vertices)[i].position = points[i];
+        }
     }
 
     *out_index_count = (*out_vertex_count - 2) * 3;
@@ -309,7 +313,209 @@ SOREN_EXPORT void camera_draw_filled_rect_color(Camera* camera, RectF rect, SDL_
     }
 }
 
+static inline int compute_segment_count(float radius) {
+    if (radius <= 16) {
+        return 12;
+    } else if (radius <= 32) {
+        return 16;
+    } else if (radius <= 64) {
+        return 24;
+    } else {
+        return 32;
+    }
+}
+
+static inline Vector arc_step(Vector position, float tangential_factor, float radial_factor) {
+    float tx = -position.y;
+    float ty = position.x;
+
+    position.x += tx * tangential_factor;
+    position.y += ty * tangential_factor;
+
+    position.x *= radial_factor;
+    position.y *= radial_factor;
+
+    return position;
+}
+
+static void arc_add_line(SDL_Vertex* vertices, int* indices, int vertex_position, int index_position, Vector start, Vector end, float half_width, SDL_Color color) {
+    Vector perp = vector_normalize(vector_perpendicular(start, end));
+    Vector top = vector_multiply_scalar(perp, half_width);
+    Vector bottom = vector_negate(top);
+
+    vertices[vertex_position].color = color;
+    vertices[vertex_position].position = vector_add(start, top);
+
+    vertices[vertex_position + 1].color = color;
+    vertices[vertex_position + 1].position = vector_add(end, top);
+
+    vertices[vertex_position + 2].color = color;
+    vertices[vertex_position + 2].position = vector_add(end, bottom);
+
+    vertices[vertex_position + 3].color = color;
+    vertices[vertex_position + 3].position = vector_add(start, bottom);
+
+    indices[index_position++] = vertex_position;
+    indices[index_position++] = vertex_position + 1;
+    indices[index_position++] = vertex_position + 2;
+    indices[index_position++] = vertex_position;
+    indices[index_position++] = vertex_position + 2;
+    indices[index_position++] = vertex_position + 3;
+}
+
+static void draw_arc_outline_parts(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, int segments, bool include_from_center, float thickness, SDL_Color color) {
+    soren_assert(thickness > 0);
+    soren_assert(segments > 2);
+
+    float theta = (end_angle - start_angle) / segments;
+    float tangential_factor = tanf(theta);
+    float radial_factor = cosf(theta);
+
+    Vector radial_position = vector_create(
+        radius * cos(start_angle),
+        radius * sin(start_angle)
+    );
+
+    if (thickness == 1) {
+        if (include_from_center) {
+            SDL_RenderLine(
+                renderer, 
+                position.x, 
+                position.y, 
+                position.x + radial_position.x, 
+                position.y + radial_position.y);
+            // draw_line_color(renderer, position, vector_add(position, radial_position), color);
+        }
+
+        for (int i = 0; i < segments; i++) {
+            Vector next_position = arc_step(radial_position, tangential_factor, radial_factor);
+
+            SDL_RenderLine(
+                renderer, 
+                position.x + radial_position.x, 
+                position.y + radial_position.y,
+                position.x + next_position.x,
+                position.y + next_position.y);
+
+            // draw_line_color(renderer, vector_add(position, radial_position), vector_add(position, next_position), color);
+
+            radial_position = next_position;
+        }
+
+        if (include_from_center) {
+            SDL_RenderLine(
+                renderer, 
+                position.x + radial_position.x, 
+                position.y + radial_position.y,
+                position.x, 
+                position.y);
+            // draw_line_color(renderer, position, vector_add(position, radial_position), color);
+        }
+    } else {
+        // TODO: Optimize this algorithm. Should be possible to use less vertices
+        //       by drawing from the previous line end vertices to the new line
+        //       vertices. This should approximately halve the total vertices,
+        //       and give a smoother overall circle.
+
+        // Each segment requires 4 vertices and 6 indices.
+        float half_thickness = thickness / 2;
+        int vertex_count = (segments + (include_from_center ? 2 : 0)) * 4;
+        int index_count = (segments + (include_from_center ? 2 : 0)) * 6;
+        SDL_Vertex* vertices = soren_malloc(vertex_count * sizeof(*vertices));
+        int* indices = soren_malloc(index_count * sizeof(*indices));
+
+        int index_position = 0;
+        int vertex_position = 0;
+
+        if (include_from_center) {
+            arc_add_line(vertices, indices, vertex_position, index_position, position, vector_add(position, radial_position), half_thickness, color);
+            vertex_position += 4;
+            index_position += 6;
+        }
+
+        for (int i = 0; i < segments; i++) {
+            Vector next_position = arc_step(radial_position, tangential_factor, radial_factor);
+
+            arc_add_line(vertices, indices, vertex_position, index_position, vector_add(position, radial_position), vector_add(position, next_position), half_thickness, color);
+            vertex_position += 4;
+            index_position += 6;
+
+            radial_position = next_position;
+        }
+
+        if (include_from_center) {
+            arc_add_line(vertices, indices, vertex_position, index_position, vector_add(position, radial_position), position, half_thickness, color);
+        }
+
+        SDL_RenderGeometry(renderer, NULL, vertices, vertex_count, indices, index_count);
+
+        soren_free(vertices);
+        soren_free(indices);
+    }
+}
+
+static void draw_arc_filled_parts(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, int segments, SDL_Color color) {
+    float theta = (end_angle - start_angle) / segments;
+    float tangential_factor = tanf(theta);
+    float radial_factor = cosf(theta);
+
+    Vector radial_position = vector_create(
+        radius * cos(start_angle),
+        radius * sin(start_angle)
+    );
+
+    int vertex_count = (segments + 2);
+    int index_count = segments * 3;
+
+    SDL_Vertex* vertices = soren_malloc(vertex_count * sizeof(*vertices));
+    int* indices = soren_malloc(index_count * sizeof(*indices));
+
+    int index_position = 0;
+    int vertex_position = 0;
+
+    vertices[vertex_position].color = color;
+    vertices[vertex_position++].position = position;
+
+    vertices[vertex_position].color = color;
+    vertices[vertex_position++].position = vector_add(position, radial_position);
+
+    for (int i = 0; i < segments; i++) {
+        Vector next_position = arc_step(radial_position, tangential_factor, radial_factor);
+
+        vertices[vertex_position].color = color;
+        vertices[vertex_position].position = vector_add(position, next_position);
+
+        indices[index_position++] = 0;
+        indices[index_position++] = vertex_position - 1;
+        indices[index_position++] = vertex_position;
+
+        vertex_position++;
+
+        radial_position = next_position;
+    }
+
+    SDL_RenderGeometry(renderer, NULL, vertices, vertex_position, indices, index_position);
+
+    soren_free(vertices);
+    soren_free(indices);
+}
+
 static void draw_circle_pixels(SDL_Renderer* renderer, Vector center, float x, float y) {
+    // float x = 0;
+    // float y = radius;
+    // float d = 3 - 2 * radius;
+    // do {
+    //     draw_circle_pixels(renderer, position, x, y);
+
+    //     x++;
+    //     if (d > 0) {
+    //         y -= 1;
+    //         d = d + 4 * (x - y) + 10;
+    //     } else {
+    //         d = d + 4 * x + 6;
+    //     }
+    // } while (x <= y);
+
     Vector points[8] = {
         vector_create(center.x + x, center.y + y),
         vector_create(center.x - x, center.y + y),
@@ -324,36 +530,54 @@ static void draw_circle_pixels(SDL_Renderer* renderer, Vector center, float x, f
     SDL_RenderPoints(renderer, points, 8);
 }
 
-SOREN_EXPORT void draw_circle_rgba(SDL_Renderer* renderer, Vector position, float radius, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    SDL_SetRenderDrawBlendMode(renderer, PRIMITIVE_BLEND(a));
-    SDL_SetRenderDrawColor(renderer, r, g, b, a);
-
-    float x = 0;
-    float y = radius;
-    float d = 3 - 2 * radius;
-    do {
-        draw_circle_pixels(renderer, position, x, y);
-
-        x++;
-        if (d > 0) {
-            y -= 1;
-            d = d + 4 * (x - y) + 10;
-        } else {
-            d = d + 4 * x + 6;
-        }
-    } while (x <= y);
+SOREN_EXPORT void draw_circle_rgba(SDL_Renderer* renderer, Vector position, float radius, float thickness, int segments, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    draw_circle_color(renderer, position, radius, thickness, segments, COLOR_CONSTRUCT(r, g, b, a));
 }
 
-SOREN_EXPORT void draw_circle_color(SDL_Renderer* renderer, Vector position, float radius, SDL_Color color) {
-    draw_circle_rgba(renderer, position, radius, COLOR_DECONSTRUCT(color));
+SOREN_EXPORT void draw_circle_color(SDL_Renderer* renderer, Vector position, float radius, float thickness, int segments, SDL_Color color) {
+    if (segments <= 0) {
+        segments = compute_segment_count(radius);
+    }
+    SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
+    draw_arc_outline_parts(renderer, position, radius, 0, degrees_to_radians(360), segments, false, thickness, color);
 }
 
-SOREN_EXPORT void draw_filled_circle_rgba(SDL_Renderer* renderer, Vector position, float radius, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    throw(NotImplementedException, __FUNCTION__ " not implemented");
+SOREN_EXPORT void draw_filled_circle_rgba(SDL_Renderer* renderer, Vector position, float radius, int segments, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    draw_filled_circle_color(renderer, position, radius, segments, COLOR_CONSTRUCT(r, g, b, a));
 }
 
-SOREN_EXPORT void draw_filled_circle_color(SDL_Renderer* renderer, Vector position, float radius, SDL_Color color) {
-    throw(NotImplementedException, __FUNCTION__ " not implemented");
+SOREN_EXPORT void draw_filled_circle_color(SDL_Renderer* renderer, Vector position, float radius, int segments, SDL_Color color) {
+    if (segments <= 0) {
+        segments = compute_segment_count(radius);
+    }
+
+    SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
+    draw_arc_filled_parts(renderer, position, radius, 0, degrees_to_radians(360), segments, color);
+}
+
+SOREN_EXPORT void draw_arc_rgba(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, float thickness, int segments, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    draw_arc_color(renderer, position, radius, start_angle, end_angle, thickness, segments, COLOR_CONSTRUCT(r, g, b, a));
+}
+
+SOREN_EXPORT void draw_arc_color(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, float thickness, int segments, SDL_Color color) {
+    if (segments <= 0) {
+        segments = compute_segment_count(radius);
+    }
+    SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
+    draw_arc_outline_parts(renderer, position, radius, start_angle, end_angle, segments, true, thickness, color);
+}
+
+SOREN_EXPORT void draw_filled_arc_rgba(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, int segments, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    draw_filled_arc_color(renderer, position, radius, start_angle, end_angle, segments, COLOR_CONSTRUCT(r, g, b, a));
+}
+
+SOREN_EXPORT void draw_filled_arc_color(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, int segments, SDL_Color color) {
+    if (segments <= 0) {
+        segments = compute_segment_count(radius);
+    }
+
+    SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
+    draw_arc_filled_parts(renderer, position, radius, start_angle, end_angle, segments, color);
 }
 
 SOREN_EXPORT void draw_line_rgba(SDL_Renderer* renderer, Vector start, Vector end, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
@@ -419,20 +643,4 @@ SOREN_EXPORT void draw_point_rgba(SDL_Renderer* renderer, Vector point, uint8_t 
 
 SOREN_EXPORT void draw_point_color(SDL_Renderer* renderer, Vector point, SDL_Color color) {
     draw_point_rgba(renderer, point, COLOR_DECONSTRUCT(color));
-}
-
-SOREN_EXPORT void draw_arc_rgba(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    throw(NotImplementedException, __FUNCTION__ " not implemented");
-}
-
-SOREN_EXPORT void draw_arc_color(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, SDL_Color color) {
-    throw(NotImplementedException, __FUNCTION__ " not implemented");
-}
-
-SOREN_EXPORT void draw_filled_arc_rgba(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, float thickness, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    throw(NotImplementedException, __FUNCTION__ " not implemented");
-}
-
-SOREN_EXPORT void draw_filled_arc_color(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, float thickness, SDL_Color color) {
-    throw(NotImplementedException, __FUNCTION__ " not implemented");
 }

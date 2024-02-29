@@ -33,6 +33,10 @@ void print_fps(float delta, SDL_Renderer* renderer) {
         calculated_delta /= 120;
     }
 
+    if (calculated_delta == 0) {
+        return;
+    }
+
     string_clear(&fps_string);
     string_format(&fps_string, "fps: %g\n", 1.f / calculated_delta);
 
@@ -92,6 +96,7 @@ static void run(SDL_Window* window, SDL_Renderer* renderer) {
         SDL_RenderClear(renderer);
 
         game_update(window, renderer);
+
         print_fps(delta, renderer);
 
         SDL_RenderPresent(renderer);
@@ -106,6 +111,8 @@ static void run(SDL_Window* window, SDL_Renderer* renderer) {
 }
 
 int main(int argc, char** argv) {
+    e4c_context_begin(false);
+
     if (SDL_SetMemoryFunctions(soren_malloc, soren_calloc, soren_realloc, soren_free) < 0) {
         printf("Could not set custom SDL alloc functions! SDL_Error: %s\n", SDL_GetError());
         return EXIT_FAILURE;
@@ -148,13 +155,20 @@ int main(int argc, char** argv) {
 
     font = font_create_ttf(ttf, true);
 
-    game_init(window, renderer);
-    run(window, renderer);
+    try {
+        game_init(window, renderer);
+        run(window, renderer);
+    } catch(RuntimeException) {
+        const e4c_exception* exception = e4c_get_exception();
+        printf("Encountered a runtime exception :(\n%s:\n%s", exception->name, exception->message);
+    }
 
     font_free(font);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+
+    e4c_context_end();
 
     return EXIT_SUCCESS;
 }

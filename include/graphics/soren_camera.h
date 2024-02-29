@@ -20,6 +20,7 @@ static inline void camera_init(Camera* camera, SDL_Renderer* renderer, int width
 
     camera->renderer = renderer;
     camera->render_target = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height);
+    SDL_SetTextureBlendMode(camera->render_target, SDL_BLENDMODE_BLEND);
     camera->bounds = (RectF){ 0, 0, (float)width, (float)height };
     camera->rotation = 0;
     camera->matrix = MATRIX_IDENTITY;

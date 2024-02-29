@@ -45,6 +45,8 @@ Unfortunately, I was too stupid to follow any of the above. Luckily, there was a
 
 There are a bunch of circle drawing routines in the libraries listed above. For circle outlines, I've based the implementation off of the one from [GeeksForGeeks](https://www.geeksforgeeks.org/bresenhams-circle-drawing-algorithm/). I also checked out these couple of articles [1](https://uomustansiriyah.edu.iq/media/lectures/12/12_2020_06_26!11_47_57_PM.pdf), [2](https://www.javatpoint.com/computer-graphics-bresenhams-circle-algorithm).
 
+I still have the above as an optional implementation, but I've since switched to using a triangle based algorithm using the code found from [this article](https://dev.to/ishaqkassam/drawing-a-circle-using-opengl-glfwglew-c-1247). It uses some magic math to avoid repeated sin/cos calls.
+
 ### Math
 
 Most of the math stuff comes from functions I've collected/implemented over the years. Most come from [MonoGame](https://github.com/MonoGame/MonoGame) and [MonoGame.Extended](https://github.com/craftworkgames/MonoGame.Extended).

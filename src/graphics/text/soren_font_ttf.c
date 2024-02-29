@@ -99,7 +99,7 @@ FontCharacterRegion* font_ttf_get_region(SDL_Renderer* renderer, FontImplTtf* fo
 
     SDL_Texture* texture = SDL_CreateTexture(
         renderer, 
-        SDL_PIXELFORMAT_RGBA32, 
+        SDL_PIXELFORMAT_RGBA8888, 
         SDL_TEXTUREACCESS_TARGET,
         font->letter_width * CHARACTER_REGION_WIDTH,
         font->letter_height * CHARACTER_REGION_WIDTH);
@@ -277,7 +277,7 @@ void font_ttf_draw(
         count = INT_MAX;
     }
 
-    graphics_set_color(renderer, color);
+    SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
 
     FontCharacterRegion* last_region = NULL;
     SDL_Texture* last_texture = NULL;
@@ -307,7 +307,8 @@ void font_ttf_draw(
         if (last_region == NULL || !character_region_contains(last_region, character)) {
             last_region = font_ttf_get_region(renderer, font, character);
             last_texture = texture_list_get(&font->textures, last_region->texture_index);
-            graphics_set_color(renderer, color);
+            
+            SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
         }
 
         int source_index = character - last_region->start;
@@ -400,9 +401,8 @@ void font_ttf_draw_ext(
         transform.m31 = (((flip_adjustment.x - origin.x) * transform.m11) + (flip_adjustment.y - origin.y) * transform.m21) + position.x;
         transform.m32 = (((flip_adjustment.x - origin.x) * transform.m12) + (flip_adjustment.y - origin.y) * transform.m22) + position.y;
     }
-
-    // SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    graphics_set_color(renderer, color);
+    
+    SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
 
     FontCharacterRegion* last_region = NULL;
     SDL_Texture* last_texture = NULL;
@@ -432,7 +432,8 @@ void font_ttf_draw_ext(
         if (last_region == NULL || !character_region_contains(last_region, character)) {
             last_region = font_ttf_get_region(renderer, font, character);
             last_texture = texture_list_get(&font->textures, last_region->texture_index);
-            graphics_set_color(renderer, color);
+            
+            SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
         }
 
         int source_index = character - last_region->start;

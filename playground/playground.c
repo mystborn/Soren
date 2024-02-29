@@ -40,10 +40,16 @@ void draw_shapes(SDL_Renderer* renderer) {
     draw_rect_rgba(renderer, rect, 255, 0, 0, 255);
     draw_filled_rect_rgba(renderer, rect2, 0, 255, 0, 255);
 
-    draw_circle_rgba(renderer, vector_create(64, 128), 32, 0, 0, 255, 255);
-    draw_polygon_rgba(renderer, hexagon, 6, 0, 255, 255, 255);
-    draw_filled_convex_polygon_rgba(renderer, octagon, 8, 255, 0, 255, 255);
-    draw_filled_concave_polygon_rgba(renderer, bowtie, 6, 0, 255, 255, 255);
+    draw_circle_rgba(renderer, vector_create(64, 128), 16, 1, -1, 0, 0, 255, 255);
+    draw_circle_rgba(renderer, vector_create(64, 128), 32, 2, -1, 0, 0, 255, 255);
+    draw_circle_rgba(renderer, vector_create(64, 128), 64, 1, -1, 0, 0, 255, 255);
+
+    draw_arc_rgba(renderer, vector_create(400, 400), 64, -degrees_to_radians(90), -degrees_to_radians(180), 1, 8, 0, 255, 0, 255);
+    draw_filled_arc_rgba(renderer, vector_create(400, 400), 64, 0, -degrees_to_radians(90), 8, 0, 255, 255, 255);
+
+    // draw_polygon_rgba(renderer, hexagon, 6, 0, 255, 255, 255);
+    // draw_filled_convex_polygon_rgba(renderer, octagon, 8, 255, 0, 255, 255);
+    // draw_filled_concave_polygon_rgba(renderer, bowtie, 6, 0, 255, 255, 255);
 }
 
 void game_init(SDL_Window* window, SDL_Renderer* renderer) {
