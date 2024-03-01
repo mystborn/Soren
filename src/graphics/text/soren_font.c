@@ -117,7 +117,7 @@ SOREN_EXPORT Vector font_measure(FontInterface* font, SDL_Renderer* renderer, co
     return VECTOR_ZERO;
 }
 
-SOREN_EXPORT void font_draw(FontInterface* font, SDL_Renderer* renderer, const char* str, int count, Vector position, SDL_Color color) {
+SOREN_EXPORT void font_draw(FontInterface* font, SDL_Renderer* renderer, const char* str, int count, Vector position, SDL_FColor color) {
     switch (font->type) {
         case FONT_INTERFACE_TTF:
             font_ttf_draw((FontImplTtf*)font->context, renderer, str, count, position, color);
@@ -140,7 +140,7 @@ SOREN_EXPORT void font_draw_ext(
     const char* str,
     int count,
     Vector position,
-    SDL_Color color,
+    SDL_FColor color,
     float rotation,
     Vector origin,
     Vector scale,

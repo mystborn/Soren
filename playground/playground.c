@@ -34,22 +34,26 @@ static Vector bowtie[6] = {
     { 600, 300 }
 };
 
+static float angle = 0;
+
 void draw_shapes(SDL_Renderer* renderer) {
     RectF rect = (RectF){ 32, 32, 64, 64 };
     RectF rect2 = (RectF){ 120, 32, 64, 64 };
     draw_rect_rgba(renderer, rect, 255, 0, 0, 255);
     draw_filled_rect_rgba(renderer, rect2, 0, 255, 0, 255);
 
+    angle += 1;
+
     draw_circle_rgba(renderer, vector_create(64, 128), 16, 1, -1, 0, 0, 255, 255);
     draw_circle_rgba(renderer, vector_create(64, 128), 32, 2, -1, 0, 0, 255, 255);
     draw_circle_rgba(renderer, vector_create(64, 128), 64, 1, -1, 0, 0, 255, 255);
+    
+    draw_arc_rgba(renderer, vector_create(400, 225), 64, -degrees_to_radians(angle), -degrees_to_radians(72 + angle), 1, 8, 255, 0, 0, 255);
+    draw_arc_rgba(renderer, vector_create(400, 225), 64, -degrees_to_radians(72 + angle), -degrees_to_radians(144 + angle), 4, 8, 0, 255, 0, 255);
 
-    draw_arc_rgba(renderer, vector_create(400, 400), 64, -degrees_to_radians(90), -degrees_to_radians(180), 1, 8, 0, 255, 0, 255);
-    draw_filled_arc_rgba(renderer, vector_create(400, 400), 64, 0, -degrees_to_radians(90), 8, 0, 255, 255, 255);
-
-    // draw_polygon_rgba(renderer, hexagon, 6, 0, 255, 255, 255);
-    // draw_filled_convex_polygon_rgba(renderer, octagon, 8, 255, 0, 255, 255);
-    // draw_filled_concave_polygon_rgba(renderer, bowtie, 6, 0, 255, 255, 255);
+    draw_pie_rgba(renderer, vector_create(400, 225), 64, -degrees_to_radians(144 + angle), -degrees_to_radians(216 + angle), 1, 8, 0, 0, 255, 255);
+    draw_pie_rgba(renderer, vector_create(400, 225), 64, -degrees_to_radians(216 + angle), -degrees_to_radians(288 + angle), 4, 8, 255, 255, 0, 255);
+    draw_filled_pie_rgba(renderer, vector_create(400, 225), 64, -degrees_to_radians(288 + angle), -degrees_to_radians(360 + angle), 8, 255, 0, 255, 255);
 }
 
 void game_init(SDL_Window* window, SDL_Renderer* renderer) {

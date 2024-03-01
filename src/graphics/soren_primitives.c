@@ -2,58 +2,52 @@
 #include <graphics/soren_graphics.h>
 
 #include <soren_generics.h>
+#include <generic_array.h>
 
+static soren_thread_local Vector* points_cache = NULL;
+static soren_thread_local int points_cache_capacity = 0;
 
-#define PRIMITIVE_BLEND(a) a == 255 ? SDL_BLENDMODE_NONE : SDL_BLENDMODE_BLEND
+static soren_thread_local SDL_Vertex* vertex_cache = NULL;
+static soren_thread_local int vertex_cache_capacity = 0;
 
-#define DRAW_CACHE_SIZE 32
+static soren_thread_local int* index_cache = NULL;
+static soren_thread_local int index_cache_capacity = 0;
 
-static soren_thread_local Vector points_cache[DRAW_CACHE_SIZE];
-static soren_thread_local SDL_Vertex vertex_cache[DRAW_CACHE_SIZE];
-static soren_thread_local int index_cache[DRAW_CACHE_SIZE];
+static inline bool draw_with_camera(SDL_Renderer* renderer) {
+    Camera* camera = graphics_get_camera();
+    return camera 
+        && camera->renderer == renderer;
+        // && camera->render_target == SDL_GetRenderTarget(renderer);
+}
 
-static Vector* fix_polygon_points(Vector* points, int points_count, int* out_points_count, bool* out_free_result) {
+static Vector* fix_polygon_points(Vector* points, int points_count, int* out_points_count) {
     soren_assert(points_count > 0);
-    Vector* array;
-    *out_free_result = false;
-    if (vector_equals(points[0], points[points_count - 1])) {
-        array = points;
-        *out_points_count = points_count;
-    } else if (points_count + 1 < DRAW_CACHE_SIZE) {
-        array = points_cache;
-        memcpy(array, points, points_count * sizeof(*array));
-        array[points_count] = points[0];
-        *out_points_count = points_count + 1;
-    } else {
-        array = soren_malloc((points_count + 1) * sizeof(*array));
-        if (!array) {
-            return NULL;
-        }
-        memcpy(array, points, points_count * sizeof(*array));
-        array[points_count] = points[0];
-        *out_free_result = true;
-        *out_points_count = points_count + 1;
-    }
+    int extra = vector_equals(points[0], points[points_count - 1]) ? 0 : 1;
 
-    return array;
+    GDS_ARRAY_RESIZE(points_cache, points_cache_capacity, points_count + extra, sizeof(*points_cache));
+    memcpy(points_cache, points, points_count * sizeof(*points_cache));
+    if (extra == 1) {
+        points_cache[points_count] = points[0];
+    }
+    *out_points_count = points_count + extra;
+
+    return points_cache;
 }
 
 SOREN_EXPORT void draw_polygon_rgba(SDL_Renderer* renderer, Vector* points, int points_count, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    bool free_array = false;
-    int final_points_count;
-    Vector* array = fix_polygon_points(points, points_count, &final_points_count, &free_array);
-
-    SDL_SetRenderDrawBlendMode(renderer, PRIMITIVE_BLEND(a));
-    SDL_SetRenderDrawColor(renderer, r, g, b, a);
-    SDL_RenderLines(renderer, array, final_points_count);
-
-    if (free_array) {
-        soren_free(array);
-    }
+    draw_polygon_color(renderer, points, points_count, COLOR_CONSTRUCT(r, g, b, a));
 }
 
-SOREN_EXPORT void draw_polygon_color(SDL_Renderer* renderer, Vector* points, int points_count, SDL_Color color) {
-    draw_polygon_rgba(renderer, points, points_count, COLOR_DECONSTRUCT(color));
+SOREN_EXPORT void draw_polygon_color(SDL_Renderer* renderer, Vector* points, int points_count, SDL_FColor color) {\
+    points = fix_polygon_points(points, points_count, &points_count);
+    if (draw_with_camera(renderer)) {
+        Camera* camera = graphics_get_camera();
+        Matrix transform = camera_view_matrix(camera);
+        vector_transform_batch(points, points_count, points, &transform);
+    }
+
+    SDL_SetRenderDrawColorFloat(renderer, COLOR_DECONSTRUCT(color));
+    SDL_RenderLines(renderer, points, points_count);
 }
 
 // If the polygon is convex, simply choose the first vertex, and create a fan 
@@ -66,71 +60,60 @@ SOREN_EXPORT void draw_polygon_color(SDL_Renderer* renderer, Vector* points, int
 // https://www.youtube.com/watch?v=hTJFcHutls8
 
 static void generate_polygon_vertices(
+    SDL_Renderer* renderer,
     Vector* points, 
     int points_count, 
-    SDL_Color color,
+    SDL_FColor color,
     SDL_Vertex** out_vertices,
     int* out_vertex_count,
-    bool* free_vertex_array,
     int** out_indices,
-    int* out_index_count,
-    bool* free_index_array)
+    int* out_index_count)
 {
     if (points && vector_equals(points[0], points[points_count - 1])) {
         points_count -= 1;
     }
 
-    *out_vertex_count = points_count;
-
-    if (points_count <= DRAW_CACHE_SIZE) {
-        *out_vertices = vertex_cache;
-        *free_vertex_array = false;
-    } else {
-        *out_vertices = soren_malloc(points_count * sizeof(**out_vertices));
-        *free_vertex_array = true;
+    Matrix transform = MATRIX_IDENTITY;
+    if (draw_with_camera(renderer)) {
+        transform = camera_view_matrix(graphics_get_camera());
     }
 
+    GDS_ARRAY_RESIZE(vertex_cache, vertex_cache_capacity, points_count, sizeof(*vertex_cache));
+    *out_vertices = vertex_cache;
+    *out_vertex_count = points_count;
+
     for (int i = 0; i < points_count; i++) {
-        (*out_vertices)[i].color = color;
+        vertex_cache[i].color = color;
         if (points) {
-            (*out_vertices)[i].position = points[i];
+            vertex_cache[i].position = vector_transform(points[i], &transform);
         }
     }
 
-    *out_index_count = (*out_vertex_count - 2) * 3;
-
-    if (*out_index_count <= DRAW_CACHE_SIZE) {
-        *out_indices = index_cache;
-        *free_index_array = false;
-    } else {
-        *out_indices = soren_malloc(*out_index_count * sizeof(**out_indices));
-        *free_index_array = true;
-    }
+    int index_count = (points_count - 2) * 3;
+    GDS_ARRAY_RESIZE(index_cache, index_cache_capacity, index_count, sizeof(*index_cache));
+    *out_indices = index_cache;
+    *out_index_count = index_count;
 }
 
 SOREN_EXPORT void draw_filled_convex_polygon_rgba(SDL_Renderer* renderer, Vector* points, int points_count, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    draw_filled_convex_polygon_color(renderer, points, points_count, (SDL_Color){ r, g, b, a });
+    draw_filled_convex_polygon_color(renderer, points, points_count, COLOR_CONSTRUCT(r, g, b, a));
 }
 
-SOREN_EXPORT void draw_filled_convex_polygon_color(SDL_Renderer* renderer, Vector* points, int points_count, SDL_Color color) {
+SOREN_EXPORT void draw_filled_convex_polygon_color(SDL_Renderer* renderer, Vector* points, int points_count, SDL_FColor color) {
     int vertex_count;
     SDL_Vertex* vertex_array;
-    bool free_vertex_array;
     int index_count;
     int* index_array;
-    bool free_index_array;
 
     generate_polygon_vertices(
+        renderer,
         points,
         points_count,
         color,
         &vertex_array,
         &vertex_count,
-        &free_vertex_array,
         &index_array,
-        &index_count,
-        &free_index_array);
-
+        &index_count);
 
     int index = 0;
     for (int i = 2; i < vertex_count; i++) {
@@ -139,20 +122,11 @@ SOREN_EXPORT void draw_filled_convex_polygon_color(SDL_Renderer* renderer, Vecto
         index_array[index++] = i;
     }
 
-    SDL_SetRenderDrawBlendMode(renderer, PRIMITIVE_BLEND(color.a));
     SDL_RenderGeometry(renderer, NULL, vertex_array, vertex_count, index_array, index_count);
-
-    if (free_vertex_array) {
-        soren_free(vertex_array);
-    }
-
-    if (free_index_array) {
-        soren_free(index_array);
-    }
 }
 
 SOREN_EXPORT void draw_filled_concave_polygon_rgba(SDL_Renderer* renderer, Vector* points, int points_count, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    draw_filled_concave_polygon_color(renderer, points, points_count, (SDL_Color){ r, g, b, a });
+    draw_filled_concave_polygon_color(renderer, points, points_count, COLOR_CONSTRUCT(r, g, b, a));
 }
 
 static bool point_in_triangle(Vector p, Vector a, Vector b, Vector c) {
@@ -175,26 +149,23 @@ static bool point_in_triangle(Vector p, Vector a, Vector b, Vector c) {
     return true;
 }
 
-SOREN_EXPORT void draw_filled_concave_polygon_color(SDL_Renderer* renderer, Vector* points, int points_count, SDL_Color color) {
+SOREN_EXPORT void draw_filled_concave_polygon_color(SDL_Renderer* renderer, Vector* points, int points_count, SDL_FColor color) {
     int vertex_count;
     SDL_Vertex* vertex_array;
-    bool free_vertex_array;
     int index_count;
     int* index_array;
-    bool free_index_array;
     IntList remaining_vertices;
     int current_index = 0;
 
     generate_polygon_vertices(
+        renderer,
         points,
         points_count,
         color,
         &vertex_array,
         &vertex_count,
-        &free_vertex_array,
         &index_array,
-        &index_count,
-        &free_index_array);
+        &index_count);
 
     int_list_init_capacity(&remaining_vertices, vertex_count);
     for (int i = 0; i < vertex_count; i++) {
@@ -253,64 +224,55 @@ SOREN_EXPORT void draw_filled_concave_polygon_color(SDL_Renderer* renderer, Vect
     index_array[current_index++] = int_list_get(&remaining_vertices, 1);
     index_array[current_index++] = int_list_get(&remaining_vertices, 2);
 
-    SDL_SetRenderDrawBlendMode(renderer, PRIMITIVE_BLEND(color.a));
     SDL_RenderGeometry(renderer, NULL, vertex_array, vertex_count, index_array, index_count);
 
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-
-    if (free_vertex_array) {
-        soren_free(vertex_array);
-    }
-
-    if (free_index_array) {
-        soren_free(index_array);
-    }
+    SDL_SetRenderDrawColorFloat(renderer, 255, 0, 0, 255);
 
     int_list_free_resources(&remaining_vertices);
 }
 
 SOREN_EXPORT void draw_rect_rgba(SDL_Renderer* renderer, RectF rect, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    SDL_SetRenderDrawBlendMode(renderer, PRIMITIVE_BLEND(a));
-    SDL_SetRenderDrawColor(renderer, r, g, b, a);
+    draw_rect_color(renderer, rect, COLOR_CONSTRUCT(r, g, b, a));
+}
+
+SOREN_EXPORT void draw_rect_color(SDL_Renderer* renderer, RectF rect, SDL_FColor color) {
+    if (draw_with_camera(renderer)) {
+        Camera* camera = graphics_get_camera();
+        if (camera_rotation(camera) == 0) {
+            rect.x -= camera->bounds.x;
+            rect.y -= camera->bounds.y;
+        } else {
+            Vector points[4];
+            rectf_points(rect, points);
+            draw_polygon_color(renderer, points, 4, color);
+            return;
+        }
+    }
+
+    SDL_SetRenderDrawColorFloat(renderer, COLOR_DECONSTRUCT(color));
     SDL_RenderRect(renderer, &rect);
 }
 
-SOREN_EXPORT void draw_rect_color(SDL_Renderer* renderer, RectF rect, SDL_Color color) {
-    draw_rect_rgba(renderer, rect, COLOR_DECONSTRUCT(color));
-}
-
 SOREN_EXPORT void draw_filled_rect_rgba(SDL_Renderer* renderer, RectF rect, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    SDL_SetRenderDrawBlendMode(renderer, PRIMITIVE_BLEND(a));
-    SDL_SetRenderDrawColor(renderer, r, g, b, a);
-    SDL_RenderFillRect(renderer, &rect);
+    draw_filled_rect_color(renderer, rect, COLOR_CONSTRUCT(r, g, b, a));
 }
 
-SOREN_EXPORT void draw_filled_rect_color(SDL_Renderer* renderer, RectF rect, SDL_Color color) {
-    draw_filled_rect_rgba(renderer, rect, COLOR_DECONSTRUCT(color));
-}
-
-SOREN_EXPORT void camera_draw_filled_rect_color(Camera* camera, RectF rect, SDL_Color color) {
-    if (camera_rotation(camera) == 0) {
-        rect.x -= camera->bounds.x;
-        rect.y -= camera->bounds.y;
-
-        draw_filled_rect_color(camera->renderer, rect, color);
-    } else {
-        Vector points[4];
-        rectf_points(rect, points);
-        Matrix camera_transform = camera_view_matrix(camera);
-        vector_transform_batch(points, 4, points, &camera_transform);
-        SDL_Vertex vertices[4] = {
-            { .color = color, .position = points[0] },
-            { .color = color, .position = points[1] }, 
-            { .color = color, .position = points[2] }, 
-            { .color = color, .position = points[3] }
-        };
-
-        int indices[6] = { 0, 1, 2, 0, 2, 3 };
-        SDL_SetRenderDrawColor(camera->renderer, COLOR_DECONSTRUCT(color));
-        SDL_RenderGeometry(camera->renderer, NULL, vertices, 4, indices, 6);
+SOREN_EXPORT void draw_filled_rect_color(SDL_Renderer* renderer, RectF rect, SDL_FColor color) {
+    if (draw_with_camera(renderer)) {
+        Camera* camera = graphics_get_camera();
+        if (camera_rotation(camera) == 0) {
+            rect.x -= camera->bounds.x;
+            rect.y -= camera->bounds.y;
+        } else {
+            Vector points[4];
+            rectf_points(rect, points);
+            draw_filled_convex_polygon_color(renderer, points, 4, color);
+            return;
+        }
     }
+
+    SDL_SetRenderDrawColorFloat(renderer, COLOR_DECONSTRUCT(color));
+    SDL_RenderFillRect(renderer, &rect);
 }
 
 static inline int compute_segment_count(float radius) {
@@ -338,7 +300,7 @@ static inline Vector arc_step(Vector position, float tangential_factor, float ra
     return position;
 }
 
-static void arc_add_line(SDL_Vertex* vertices, int* indices, int vertex_position, int index_position, Vector start, Vector end, float half_width, SDL_Color color) {
+static void arc_add_line(SDL_Vertex* vertices, int* indices, int vertex_position, int index_position, Vector start, Vector end, float half_width, SDL_FColor color) {
     Vector perp = vector_normalize(vector_perpendicular(start, end));
     Vector top = vector_multiply_scalar(perp, half_width);
     Vector bottom = vector_negate(top);
@@ -363,9 +325,14 @@ static void arc_add_line(SDL_Vertex* vertices, int* indices, int vertex_position
     indices[index_position++] = vertex_position + 3;
 }
 
-static void draw_arc_outline_parts(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, int segments, bool include_from_center, float thickness, SDL_Color color) {
+static void draw_arc_outline_parts(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, int segments, bool include_from_center, float thickness, SDL_FColor color) {
     soren_assert(thickness > 0);
     soren_assert(segments > 2);
+
+    Matrix transform = MATRIX_IDENTITY;
+    if (draw_with_camera(renderer)) {
+        transform = camera_view_matrix(graphics_get_camera());
+    }
 
     float theta = (end_angle - start_angle) / segments;
     float tangential_factor = tanf(theta);
@@ -377,40 +344,25 @@ static void draw_arc_outline_parts(SDL_Renderer* renderer, Vector position, floa
     );
 
     if (thickness == 1) {
+        int point_count = segments + 1 + (include_from_center ? 2 : 0);
+        int point_index = 0;
+        GDS_ARRAY_RESIZE(points_cache, points_cache_capacity, point_count, sizeof(*vertex_cache));
         if (include_from_center) {
-            SDL_RenderLine(
-                renderer, 
-                position.x, 
-                position.y, 
-                position.x + radial_position.x, 
-                position.y + radial_position.y);
-            // draw_line_color(renderer, position, vector_add(position, radial_position), color);
+            points_cache[point_index++] = vector_transform(position, &transform);
         }
 
-        for (int i = 0; i < segments; i++) {
+        for (int i = 0; i <= segments; i++) {
+            points_cache[point_index++] = vector_transform(vector_add(position, radial_position), &transform);
             Vector next_position = arc_step(radial_position, tangential_factor, radial_factor);
-
-            SDL_RenderLine(
-                renderer, 
-                position.x + radial_position.x, 
-                position.y + radial_position.y,
-                position.x + next_position.x,
-                position.y + next_position.y);
-
-            // draw_line_color(renderer, vector_add(position, radial_position), vector_add(position, next_position), color);
 
             radial_position = next_position;
         }
 
         if (include_from_center) {
-            SDL_RenderLine(
-                renderer, 
-                position.x + radial_position.x, 
-                position.y + radial_position.y,
-                position.x, 
-                position.y);
-            // draw_line_color(renderer, position, vector_add(position, radial_position), color);
+            points_cache[point_index++] = vector_transform(position, &transform);
         }
+
+        SDL_RenderLines(renderer, points_cache, point_count);
     } else {
         // TODO: Optimize this algorithm. Should be possible to use less vertices
         //       by drawing from the previous line end vertices to the new line
@@ -421,14 +373,24 @@ static void draw_arc_outline_parts(SDL_Renderer* renderer, Vector position, floa
         float half_thickness = thickness / 2;
         int vertex_count = (segments + (include_from_center ? 2 : 0)) * 4;
         int index_count = (segments + (include_from_center ? 2 : 0)) * 6;
-        SDL_Vertex* vertices = soren_malloc(vertex_count * sizeof(*vertices));
-        int* indices = soren_malloc(index_count * sizeof(*indices));
+
+        GDS_ARRAY_RESIZE(vertex_cache, vertex_cache_capacity, vertex_count, sizeof(*vertex_cache));
+        GDS_ARRAY_RESIZE(index_cache, index_cache_capacity, index_count, sizeof(*index_cache));
 
         int index_position = 0;
         int vertex_position = 0;
 
         if (include_from_center) {
-            arc_add_line(vertices, indices, vertex_position, index_position, position, vector_add(position, radial_position), half_thickness, color);
+            arc_add_line(
+                vertex_cache, 
+                index_cache, 
+                vertex_position, 
+                index_position, 
+                vector_transform(position, &transform), 
+                vector_transform(vector_add(position, radial_position), &transform), 
+                half_thickness,
+                color);
+
             vertex_position += 4;
             index_position += 6;
         }
@@ -436,7 +398,16 @@ static void draw_arc_outline_parts(SDL_Renderer* renderer, Vector position, floa
         for (int i = 0; i < segments; i++) {
             Vector next_position = arc_step(radial_position, tangential_factor, radial_factor);
 
-            arc_add_line(vertices, indices, vertex_position, index_position, vector_add(position, radial_position), vector_add(position, next_position), half_thickness, color);
+            arc_add_line(
+                vertex_cache, 
+                index_cache, 
+                vertex_position, 
+                index_position, 
+                vector_transform(vector_add(position, radial_position), &transform), 
+                vector_transform(vector_add(position, next_position), &transform), 
+                half_thickness, 
+                color);
+
             vertex_position += 4;
             index_position += 6;
 
@@ -444,17 +415,27 @@ static void draw_arc_outline_parts(SDL_Renderer* renderer, Vector position, floa
         }
 
         if (include_from_center) {
-            arc_add_line(vertices, indices, vertex_position, index_position, vector_add(position, radial_position), position, half_thickness, color);
+            arc_add_line(
+                vertex_cache, 
+                index_cache, 
+                vertex_position, 
+                index_position, 
+                vector_transform(vector_add(position, radial_position), &transform), 
+                vector_transform(position, &transform), 
+                half_thickness, 
+                color);
         }
 
-        SDL_RenderGeometry(renderer, NULL, vertices, vertex_count, indices, index_count);
-
-        soren_free(vertices);
-        soren_free(indices);
+        SDL_RenderGeometry(renderer, NULL, vertex_cache, vertex_count, index_cache, index_count);
     }
 }
 
-static void draw_arc_filled_parts(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, int segments, SDL_Color color) {
+static void draw_arc_filled_parts(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, int segments, SDL_FColor color) {
+    Matrix transform = MATRIX_IDENTITY;
+    if (draw_with_camera(renderer)) {
+        transform = camera_view_matrix(graphics_get_camera());
+    }
+
     float theta = (end_angle - start_angle) / segments;
     float tangential_factor = tanf(theta);
     float radial_factor = cosf(theta);
@@ -467,37 +448,34 @@ static void draw_arc_filled_parts(SDL_Renderer* renderer, Vector position, float
     int vertex_count = (segments + 2);
     int index_count = segments * 3;
 
-    SDL_Vertex* vertices = soren_malloc(vertex_count * sizeof(*vertices));
-    int* indices = soren_malloc(index_count * sizeof(*indices));
+    GDS_ARRAY_RESIZE(vertex_cache, vertex_cache_capacity, vertex_count, sizeof(*vertex_cache));
+    GDS_ARRAY_RESIZE(index_cache, index_cache_capacity, index_count, sizeof(*index_cache));
 
     int index_position = 0;
     int vertex_position = 0;
 
-    vertices[vertex_position].color = color;
-    vertices[vertex_position++].position = position;
+    vertex_cache[vertex_position].color = color;
+    vertex_cache[vertex_position++].position = vector_transform(position, &transform);
 
-    vertices[vertex_position].color = color;
-    vertices[vertex_position++].position = vector_add(position, radial_position);
+    vertex_cache[vertex_position].color = color;
+    vertex_cache[vertex_position++].position = vector_transform(vector_add(position, radial_position), &transform);
 
     for (int i = 0; i < segments; i++) {
         Vector next_position = arc_step(radial_position, tangential_factor, radial_factor);
 
-        vertices[vertex_position].color = color;
-        vertices[vertex_position].position = vector_add(position, next_position);
+        vertex_cache[vertex_position].color = color;
+        vertex_cache[vertex_position].position = vector_transform(vector_add(position, next_position), &transform);
 
-        indices[index_position++] = 0;
-        indices[index_position++] = vertex_position - 1;
-        indices[index_position++] = vertex_position;
+        index_cache[index_position++] = 0;
+        index_cache[index_position++] = vertex_position - 1;
+        index_cache[index_position++] = vertex_position;
 
         vertex_position++;
 
         radial_position = next_position;
     }
 
-    SDL_RenderGeometry(renderer, NULL, vertices, vertex_position, indices, index_position);
-
-    soren_free(vertices);
-    soren_free(indices);
+    SDL_RenderGeometry(renderer, NULL, vertex_cache, vertex_position, index_cache, index_position);
 }
 
 static void draw_circle_pixels(SDL_Renderer* renderer, Vector center, float x, float y) {
@@ -534,11 +512,11 @@ SOREN_EXPORT void draw_circle_rgba(SDL_Renderer* renderer, Vector position, floa
     draw_circle_color(renderer, position, radius, thickness, segments, COLOR_CONSTRUCT(r, g, b, a));
 }
 
-SOREN_EXPORT void draw_circle_color(SDL_Renderer* renderer, Vector position, float radius, float thickness, int segments, SDL_Color color) {
+SOREN_EXPORT void draw_circle_color(SDL_Renderer* renderer, Vector position, float radius, float thickness, int segments, SDL_FColor color) {
     if (segments <= 0) {
         segments = compute_segment_count(radius);
     }
-    SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
+    SDL_SetRenderDrawColorFloat(renderer, COLOR_DECONSTRUCT(color));
     draw_arc_outline_parts(renderer, position, radius, 0, degrees_to_radians(360), segments, false, thickness, color);
 }
 
@@ -546,12 +524,12 @@ SOREN_EXPORT void draw_filled_circle_rgba(SDL_Renderer* renderer, Vector positio
     draw_filled_circle_color(renderer, position, radius, segments, COLOR_CONSTRUCT(r, g, b, a));
 }
 
-SOREN_EXPORT void draw_filled_circle_color(SDL_Renderer* renderer, Vector position, float radius, int segments, SDL_Color color) {
+SOREN_EXPORT void draw_filled_circle_color(SDL_Renderer* renderer, Vector position, float radius, int segments, SDL_FColor color) {
     if (segments <= 0) {
         segments = compute_segment_count(radius);
     }
 
-    SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
+    SDL_SetRenderDrawColorFloat(renderer, COLOR_DECONSTRUCT(color));
     draw_arc_filled_parts(renderer, position, radius, 0, degrees_to_radians(360), segments, color);
 }
 
@@ -559,88 +537,102 @@ SOREN_EXPORT void draw_arc_rgba(SDL_Renderer* renderer, Vector position, float r
     draw_arc_color(renderer, position, radius, start_angle, end_angle, thickness, segments, COLOR_CONSTRUCT(r, g, b, a));
 }
 
-SOREN_EXPORT void draw_arc_color(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, float thickness, int segments, SDL_Color color) {
+SOREN_EXPORT void draw_arc_color(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, float thickness, int segments, SDL_FColor color) {
     if (segments <= 0) {
         segments = compute_segment_count(radius);
     }
-    SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
+    SDL_SetRenderDrawColorFloat(renderer, COLOR_DECONSTRUCT(color));
+    draw_arc_outline_parts(renderer, position, radius, start_angle, end_angle, segments, false, thickness, color);
+}
+
+SOREN_EXPORT void draw_pie_rgba(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, float thickness, int segments, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    draw_pie_color(renderer, position, radius, start_angle, end_angle, thickness, segments, COLOR_CONSTRUCT(r, g, b, a));
+}
+
+SOREN_EXPORT void draw_pie_color(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, float thickness, int segments, SDL_FColor color) {
+    if (segments <= 0) {
+        segments = compute_segment_count(radius);
+    }
+    SDL_SetRenderDrawColorFloat(renderer, COLOR_DECONSTRUCT(color));
     draw_arc_outline_parts(renderer, position, radius, start_angle, end_angle, segments, true, thickness, color);
 }
 
-SOREN_EXPORT void draw_filled_arc_rgba(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, int segments, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    draw_filled_arc_color(renderer, position, radius, start_angle, end_angle, segments, COLOR_CONSTRUCT(r, g, b, a));
+SOREN_EXPORT void draw_filled_pie_rgba(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, int segments, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    draw_filled_pie_color(renderer, position, radius, start_angle, end_angle, segments, COLOR_CONSTRUCT(r, g, b, a));
 }
 
-SOREN_EXPORT void draw_filled_arc_color(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, int segments, SDL_Color color) {
+SOREN_EXPORT void draw_filled_pie_color(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, int segments, SDL_FColor color) {
     if (segments <= 0) {
         segments = compute_segment_count(radius);
     }
 
-    SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
+    SDL_SetRenderDrawColorFloat(renderer, COLOR_DECONSTRUCT(color));
     draw_arc_filled_parts(renderer, position, radius, start_angle, end_angle, segments, color);
 }
 
-SOREN_EXPORT void draw_line_rgba(SDL_Renderer* renderer, Vector start, Vector end, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    SDL_SetRenderDrawBlendMode(renderer, PRIMITIVE_BLEND(a));
-    SDL_SetRenderDrawColor(renderer, r, g, b, a);
-    SDL_RenderLine(renderer, start.x, start.y, end.x, end.y);
+SOREN_EXPORT void draw_line_rgba(SDL_Renderer* renderer, Vector start, Vector end, float thickness, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    draw_line_color(renderer, start, end, thickness, COLOR_CONSTRUCT(r, g, b, a));
 }
 
-SOREN_EXPORT void draw_line_color(SDL_Renderer* renderer, Vector start, Vector end, SDL_Color color) {
-    draw_line_rgba(renderer, start, end, COLOR_DECONSTRUCT(color));
-}
-
-SOREN_EXPORT void draw_filled_line_rgba(SDL_Renderer* renderer, Vector start, Vector end, float width, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    draw_filled_line_color(renderer, start, end, width, (SDL_Color){ r, g, b, a });    
-}
-
-SOREN_EXPORT void draw_filled_line_color(SDL_Renderer* renderer, Vector start, Vector end, float width, SDL_Color color) {
-    soren_assert(width >= 1);
-
-    if (width == 1) {
-        draw_line_color(renderer, start, end, color);
+SOREN_EXPORT void draw_line_color(SDL_Renderer* renderer, Vector start, Vector end, float thickness, SDL_FColor color) {
+    if (thickness < 0) {
         return;
     }
 
-    float radius = width / 2;
-    Vector perp = vector_perpendicular(start, end);
-    perp = vector_normalize(perp);
+    if (draw_with_camera(renderer)) {
+        Matrix transform = camera_view_matrix(graphics_get_camera());
+        start = vector_transform(start, &transform);
+        end = vector_transform(end, &transform);
+    }
 
-    Vector top = vector_multiply_scalar(perp, radius);
-    Vector bottom = vector_negate(top);
+    if (thickness == 1) {
+        SDL_SetRenderDrawColorFloat(renderer, COLOR_DECONSTRUCT(color));
+        SDL_RenderLine(renderer, start.x, start.y, end.x, end.y);
+    } else {
+        float radius = thickness / 2;
+        Vector perp = vector_perpendicular(start, end);
+        perp = vector_normalize(perp);
 
-    SDL_Vertex vertices[4] = {
-        {
-            .color = color,
-            .position = vector_add(start, top)
-        },
-        {
-            .color = color,
-            .position = vector_add(end, top)
-        }, 
-        {
-            .color = color,
-            .position = vector_add(end, bottom)
-        },
-        {
-            .color = color,
-            .position = vector_add(start, bottom)
-        }
-    };
+        Vector top = vector_multiply_scalar(perp, radius);
+        Vector bottom = vector_negate(top);
 
-    int indices[6] = { 0, 1, 2, 0, 2, 3 };
+        SDL_FColor fcolor = color;
 
-    SDL_SetRenderDrawBlendMode(renderer, PRIMITIVE_BLEND(color.a));
-    SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
-    SDL_RenderGeometry(renderer, NULL, vertices, 4, indices, 6);
+        SDL_Vertex vertices[4] = {
+            {
+                .color = fcolor,
+                .position = vector_add(start, top)
+            },
+            {
+                .color = fcolor,
+                .position = vector_add(end, top)
+            }, 
+            {
+                .color = fcolor,
+                .position = vector_add(end, bottom)
+            },
+            {
+                .color = fcolor,
+                .position = vector_add(start, bottom)
+            }
+        };
+
+        int indices[6] = { 0, 1, 2, 0, 2, 3 };
+
+        int result = SDL_RenderGeometry(renderer, NULL, vertices, 4, indices, 6);
+    }
 }
 
 SOREN_EXPORT void draw_point_rgba(SDL_Renderer* renderer, Vector point, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    SDL_SetRenderDrawBlendMode(renderer, PRIMITIVE_BLEND(a));
-    SDL_SetRenderDrawColor(renderer, r, g, b, a);
-    SDL_RenderPoint(renderer, point.x, point.y);
+    draw_point_color(renderer, point, COLOR_CONSTRUCT(r, g, b, a));
 }
 
-SOREN_EXPORT void draw_point_color(SDL_Renderer* renderer, Vector point, SDL_Color color) {
-    draw_point_rgba(renderer, point, COLOR_DECONSTRUCT(color));
+SOREN_EXPORT void draw_point_color(SDL_Renderer* renderer, Vector point, SDL_FColor color) {
+    if (draw_with_camera(renderer)) {
+        Matrix transform = camera_view_matrix(graphics_get_camera());
+        point = vector_transform(point, &transform);
+    }
+
+    SDL_SetRenderDrawColorFloat(renderer, COLOR_DECONSTRUCT(color));
+    SDL_RenderPoint(renderer, point.x, point.y);
 }

@@ -1,6 +1,7 @@
 #include "run.h"
 #include <graphics/soren_camera.h>
 #include <graphics/soren_primitives.h>
+#include <graphics/soren_graphics.h>
 
 char* title = "Camera Playground";
 
@@ -24,6 +25,8 @@ void game_init(SDL_Window* window, SDL_Renderer* renderer) {
     player.y = camera->bounds.h / 4;
     player.h = camera->bounds.h / 2;
     player.w = camera->bounds.h / 2;
+    
+    graphics_set_camera(camera);
 }
 
 void game_update(SDL_Window* window, SDL_Renderer* renderer) {
@@ -36,7 +39,7 @@ void game_update(SDL_Window* window, SDL_Renderer* renderer) {
         player.x = 0;
     }
 
-    camera_draw_filled_rect_color(camera, player, (SDL_Color){ 255, 0, 0, 255 });
+    draw_filled_rect_color(renderer, player, (SDL_FColor){ 1, 0, 0, 1 });
 
     SDL_SetRenderTarget(renderer, NULL);
     SDL_RenderTexture(renderer, camera->render_target, &(RectF){ 0, 0, camera->bounds.w, camera->bounds.h }, &viewport);

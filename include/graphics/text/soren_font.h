@@ -14,8 +14,8 @@ typedef enum FontInterfaceType {
 
 typedef struct FontInterfaceMethods {
     Vector (*measure)(void* context, SDL_Renderer* renderer, const char* text, int count);
-    void (*draw)(void* context, SDL_Renderer* renderer, const char* text, int count, Vector position, SDL_Color color);
-    void (*draw_ext)(void* context, SDL_Renderer* renderer, const char* text, int count, Vector position, SDL_Color color, float rotation, Vector origin, Vector scale, SDL_FlipMode flip, bool rtl);
+    void (*draw)(void* context, SDL_Renderer* renderer, const char* text, int count, Vector position, SDL_FColor color);
+    void (*draw_ext)(void* context, SDL_Renderer* renderer, const char* text, int count, Vector position, SDL_FColor color, float rotation, Vector origin, Vector scale, SDL_FlipMode flip, bool rtl);
     float (*line_height)(void* context);
     float (*letter_spacing)(void* context);
     void (*set_letter_spacing)(void* context, float letter_spacing);
@@ -43,7 +43,7 @@ SOREN_EXPORT void font_set_letter_spacing(FontInterface* font, float letter_spac
 
 SOREN_EXPORT Vector font_measure(FontInterface* font, SDL_Renderer* renderer, const char* str, int count);
 
-SOREN_EXPORT void font_draw(FontInterface* font, SDL_Renderer* renderer, const char* str, int count, Vector position, SDL_Color color);
+SOREN_EXPORT void font_draw(FontInterface* font, SDL_Renderer* renderer, const char* str, int count, Vector position, SDL_FColor color);
 
 SOREN_EXPORT void font_draw_ext(
     FontInterface* font,
@@ -51,7 +51,7 @@ SOREN_EXPORT void font_draw_ext(
     const char* str,
     int count,
     Vector position,
-    SDL_Color color,
+    SDL_FColor color,
     float rotation,
     Vector origin,
     Vector scale,

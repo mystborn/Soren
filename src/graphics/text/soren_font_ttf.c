@@ -265,7 +265,7 @@ void font_ttf_draw(
     const char* str,
     int count,
     Vector position,
-    SDL_Color color)
+    SDL_FColor color)
 {
     soren_assert(font);
     soren_assert(renderer);
@@ -277,7 +277,7 @@ void font_ttf_draw(
         count = INT_MAX;
     }
 
-    SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
+    SDL_SetRenderDrawColorFloat(renderer, COLOR_DECONSTRUCT(color));
 
     FontCharacterRegion* last_region = NULL;
     SDL_Texture* last_texture = NULL;
@@ -308,7 +308,7 @@ void font_ttf_draw(
             last_region = font_ttf_get_region(renderer, font, character);
             last_texture = texture_list_get(&font->textures, last_region->texture_index);
             
-            SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
+            SDL_SetRenderDrawColorFloat(renderer, COLOR_DECONSTRUCT(color));
         }
 
         int source_index = character - last_region->start;
@@ -344,7 +344,7 @@ void font_ttf_draw_ext(
     const char* str,
     int count,
     Vector position,
-    SDL_Color color,
+    SDL_FColor color,
     float rotation,
     Vector origin,
     Vector scale,
@@ -402,7 +402,7 @@ void font_ttf_draw_ext(
         transform.m32 = (((flip_adjustment.x - origin.x) * transform.m12) + (flip_adjustment.y - origin.y) * transform.m22) + position.y;
     }
     
-    SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
+    SDL_SetRenderDrawColorFloat(renderer, COLOR_DECONSTRUCT(color));
 
     FontCharacterRegion* last_region = NULL;
     SDL_Texture* last_texture = NULL;
@@ -433,7 +433,7 @@ void font_ttf_draw_ext(
             last_region = font_ttf_get_region(renderer, font, character);
             last_texture = texture_list_get(&font->textures, last_region->texture_index);
             
-            SDL_SetRenderDrawColor(renderer, COLOR_DECONSTRUCT(color));
+            SDL_SetRenderDrawColorFloat(renderer, COLOR_DECONSTRUCT(color));
         }
 
         int source_index = character - last_region->start;

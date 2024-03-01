@@ -105,3 +105,11 @@ camera_playground = executable(
     link_with: [soren_shared],
     c_args: ['/Zc:preprocessor']
 )
+
+minimal = executable(
+    'minimal',
+    files(['./playground/minimal.c']),
+    include_directories: include_directories(['../SDL/include']),
+    dependencies: [sdl],
+    c_args: ['/Zc:preprocessor']
+)

@@ -46,7 +46,7 @@ void print_fps(float delta, SDL_Renderer* renderer) {
         string_data(&fps_string), 
         string_size(&fps_string), 
         vector_create(700, 5),
-        (SDL_Color){ 255, 255, 255, 255 });
+        (SDL_FColor){ 1, 1, 1, 1 });
 }
 
 static void run(SDL_Window* window, SDL_Renderer* renderer) {
@@ -140,12 +140,19 @@ int main(int argc, char** argv) {
         height,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+
     SDL_Renderer* renderer = SDL_CreateRenderer(window, NULL, SDL_RENDERER_ACCELERATED);
 
     if (!window || !renderer) {
         printf("Game could not be initialized! SDL_Error: %s\n", SDL_GetError());
         return EXIT_FAILURE;
     }
+
+    SDL_RendererInfo info;
+    SDL_GetRendererInfo(renderer, &info);
+
+    printf("Renderer: %s\n", info.name);
 
     TTF_Font* ttf = TTF_OpenFont("ATypewriterForMe.ttf", 16);
     if (!ttf) {

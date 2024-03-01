@@ -28,7 +28,7 @@ void font_ttf_draw(
     const char* str,
     int count,
     Vector position,
-    SDL_Color color);
+    SDL_FColor color);
 
 void font_ttf_draw_ext(
     FontImplTtf* font,
@@ -36,7 +36,7 @@ void font_ttf_draw_ext(
     const char* text,
     int count,
     Vector position,
-    SDL_Color color,
+    SDL_FColor color,
     float rotation,
     Vector origin,
     Vector scale,
