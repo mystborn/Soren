@@ -13,13 +13,6 @@ static soren_thread_local int vertex_cache_capacity = 0;
 static soren_thread_local int* index_cache = NULL;
 static soren_thread_local int index_cache_capacity = 0;
 
-static inline bool draw_with_camera(SDL_Renderer* renderer) {
-    Camera* camera = graphics_get_camera();
-    return camera 
-        && camera->renderer == renderer;
-        // && camera->render_target == SDL_GetRenderTarget(renderer);
-}
-
 static Vector* fix_polygon_points(Vector* points, int points_count, int* out_points_count) {
     soren_assert(points_count > 0);
     int extra = vector_equals(points[0], points[points_count - 1]) ? 0 : 1;
@@ -38,11 +31,11 @@ SOREN_EXPORT void draw_polygon_rgba(SDL_Renderer* renderer, Vector* points, int 
     draw_polygon_color(renderer, points, points_count, COLOR_CONSTRUCT(r, g, b, a));
 }
 
-SOREN_EXPORT void draw_polygon_color(SDL_Renderer* renderer, Vector* points, int points_count, SDL_FColor color) {\
+SOREN_EXPORT void draw_polygon_color(SDL_Renderer* renderer, Vector* points, int points_count, SDL_FColor color) {
     points = fix_polygon_points(points, points_count, &points_count);
-    if (draw_with_camera(renderer)) {
-        Camera* camera = graphics_get_camera();
-        Matrix transform = camera_view_matrix(camera);
+
+    Matrix transform;
+    if (graphics_using_camera(renderer, &transform)) {
         vector_transform_batch(points, points_count, points, &transform);
     }
 
@@ -73,10 +66,8 @@ static void generate_polygon_vertices(
         points_count -= 1;
     }
 
-    Matrix transform = MATRIX_IDENTITY;
-    if (draw_with_camera(renderer)) {
-        transform = camera_view_matrix(graphics_get_camera());
-    }
+    Matrix transform;
+    graphics_using_camera(renderer, &transform);
 
     GDS_ARRAY_RESIZE(vertex_cache, vertex_cache_capacity, points_count, sizeof(*vertex_cache));
     *out_vertices = vertex_cache;
@@ -236,7 +227,7 @@ SOREN_EXPORT void draw_rect_rgba(SDL_Renderer* renderer, RectF rect, uint8_t r, 
 }
 
 SOREN_EXPORT void draw_rect_color(SDL_Renderer* renderer, RectF rect, SDL_FColor color) {
-    if (draw_with_camera(renderer)) {
+    if (graphics_using_camera(renderer, NULL)) {
         Camera* camera = graphics_get_camera();
         if (camera_rotation(camera) == 0) {
             rect.x -= camera->bounds.x;
@@ -258,7 +249,7 @@ SOREN_EXPORT void draw_filled_rect_rgba(SDL_Renderer* renderer, RectF rect, uint
 }
 
 SOREN_EXPORT void draw_filled_rect_color(SDL_Renderer* renderer, RectF rect, SDL_FColor color) {
-    if (draw_with_camera(renderer)) {
+    if (graphics_using_camera(renderer, NULL)) {
         Camera* camera = graphics_get_camera();
         if (camera_rotation(camera) == 0) {
             rect.x -= camera->bounds.x;
@@ -329,10 +320,8 @@ static void draw_arc_outline_parts(SDL_Renderer* renderer, Vector position, floa
     soren_assert(thickness > 0);
     soren_assert(segments > 2);
 
-    Matrix transform = MATRIX_IDENTITY;
-    if (draw_with_camera(renderer)) {
-        transform = camera_view_matrix(graphics_get_camera());
-    }
+    Matrix transform;
+    graphics_using_camera(renderer, &transform);
 
     float theta = (end_angle - start_angle) / segments;
     float tangential_factor = tanf(theta);
@@ -431,10 +420,8 @@ static void draw_arc_outline_parts(SDL_Renderer* renderer, Vector position, floa
 }
 
 static void draw_arc_filled_parts(SDL_Renderer* renderer, Vector position, float radius, float start_angle, float end_angle, int segments, SDL_FColor color) {
-    Matrix transform = MATRIX_IDENTITY;
-    if (draw_with_camera(renderer)) {
-        transform = camera_view_matrix(graphics_get_camera());
-    }
+    Matrix transform;
+    graphics_using_camera(renderer, &transform);
 
     float theta = (end_angle - start_angle) / segments;
     float tangential_factor = tanf(theta);
@@ -579,8 +566,8 @@ SOREN_EXPORT void draw_line_color(SDL_Renderer* renderer, Vector start, Vector e
         return;
     }
 
-    if (draw_with_camera(renderer)) {
-        Matrix transform = camera_view_matrix(graphics_get_camera());
+    Matrix transform;
+    if (graphics_using_camera(renderer, &transform)) {
         start = vector_transform(start, &transform);
         end = vector_transform(end, &transform);
     }
@@ -628,8 +615,8 @@ SOREN_EXPORT void draw_point_rgba(SDL_Renderer* renderer, Vector point, uint8_t 
 }
 
 SOREN_EXPORT void draw_point_color(SDL_Renderer* renderer, Vector point, SDL_FColor color) {
-    if (draw_with_camera(renderer)) {
-        Matrix transform = camera_view_matrix(graphics_get_camera());
+    Matrix transform;
+    if (graphics_using_camera(renderer, &transform)) {
         point = vector_transform(point, &transform);
     }
 

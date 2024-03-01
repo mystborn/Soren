@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
         height,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
-    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d12");
 
     SDL_Renderer* renderer = SDL_CreateRenderer(window, NULL, SDL_RENDERER_ACCELERATED);
 
