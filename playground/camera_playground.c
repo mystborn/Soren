@@ -29,7 +29,7 @@ void game_init(SDL_Window* window, SDL_Renderer* renderer) {
     graphics_set_camera(camera);
 }
 
-void game_update(SDL_Window* window, SDL_Renderer* renderer) {
+void game_update(SDL_Window* window, SDL_Renderer* renderer, float delta) {
     SDL_SetRenderTarget(renderer, camera->render_target);
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 100);
     SDL_RenderClear(renderer);

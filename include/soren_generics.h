@@ -12,6 +12,7 @@
 LIST_DEFINE_H(IntList, int_list, int)
 LIST_DEFINE_H(VectorList, vector_list, Vector)
 LIST_DEFINE_H(PointList, point_list, Point)
+LIST_DEFINE_H(RectFList, rectf_list, RectF)
 LIST_DEFINE_H(ScancodeList, scancode_list, SDL_Scancode)
 LIST_DEFINE_H(GamepadButtonList, gamepad_button_list, uint32_t)
 LIST_DEFINE_H(GamepadActionList, gamepad_action_list, GamepadAction)

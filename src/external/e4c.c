@@ -38,7 +38,7 @@
 # include <signal.h>
 # include <errno.h>
 # include <stdarg.h>
-# include "e4c/e4c.h"
+# include <external/e4c.h>
 
 
 /*

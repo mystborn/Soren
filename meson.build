@@ -2,7 +2,7 @@ project('soren', 'c')
 
 cc = meson.get_compiler('c')
 
-compiler_args = ['/DSSO_STRING_BUILD', '/DECS_BUILD', '/DSOREN_BUILD', '/DE4C_BUILD', '/DGDS_BUILD', '/DSSO_STRING_MACROS="soren_std.h"', '/Zc:preprocessor']
+compiler_args = ['/DSSO_STRING_BUILD', '/DECS_BUILD', '/DSOREN_BUILD', '/DE4C_BUILD', '/DGDS_BUILD', '/DMIST_LOG_BUILD', '/DSSO_STRING_MACROS="soren_std.h"', '/Zc:preprocessor']
 
 include_files = [
     'submodules/GenericDataStructures/include',
@@ -11,6 +11,7 @@ include_files = [
     'include',
     '../SDL/include',
     '../SDL_ttf/include',
+    '../SDL_image/include',
     '../bdwgc/include'
 ]
 
@@ -34,7 +35,12 @@ sources = files([
     './src/collisions/soren_colliders.c',
     './src/collisions/soren_collision_utils.c',
     './src/collisions/soren_collisions.c',
-    './src/e4c/e4c.c',
+    './src/external/e4c.c',
+    './src/external/mist_log.c',
+    './src/external/parson.c',
+    './src/graphics/sprites/soren_sprite_atlas.c',
+    './src/graphics/sprites/soren_sprite_update_mode.c',
+    './src/graphics/sprites/soren_sprite.c',
     './src/graphics/text/soren_font_ttf.c',
     './src/graphics/text/soren_font.c',
     './src/graphics/soren_graphics.c',
@@ -43,7 +49,10 @@ sources = files([
     './src/input/soren_input_actions.c',
     './src/input/soren_input_gamepad.c',
     './src/input/soren_input_mouse_and_keyboard.c',
+    './src/resources/soren_json.c',
+    './src/resources/soren_resources.c',
     './src/timing/soren_timer.c',
+    './src/soren_enum_parser.c',
     './src/soren_generics.c',
     './src/soren_std.c'
 ])
@@ -58,6 +67,11 @@ sdl_ttf = cc.find_library(
     dirs: ['C:/Users/chris/source/c/SDL_ttf/VisualC/x64/Debug'],
     required: true)
 
+sdl_image = cc.find_library(
+    'SDL3_image',
+    dirs: ['C:/Users/chris/source/c/SDL_image/VisualC/x64/Debug'],
+    required: true)
+
 cord = cc.find_library(
     'cord',
     dirs: ['C:/Users/chris/source/c/bdwgc/out/x64/Release'],
@@ -68,7 +82,7 @@ gc = cc.find_library(
     dirs: ['C:/Users/chris/source/c/bdwgc/out/x64/Release'],
     required: true)
 
-deps = [sdl, sdl_ttf, cord, gc]
+deps = [sdl, sdl_ttf, sdl_image, cord, gc]
 
 soren = static_library(
     'soren',

@@ -9,6 +9,6 @@ extern FontInterface* font;
 extern char* title;
 
 void game_init(SDL_Window* window, SDL_Renderer* renderer);
-void game_update(SDL_Window* window, SDL_Renderer* renderer);
+void game_update(SDL_Window* window, SDL_Renderer* renderer, float delta);
 
 #endif

@@ -9,6 +9,8 @@
 #include <graphics/soren_primitives.h>
 #include <graphics/text/soren_font.h>
 
+#include <SDL3_image/SDL_image.h>
+
 #define GAME_TICKS_PER_FRAME 1000 / 60
 
 FontInterface* font = NULL;
@@ -95,11 +97,15 @@ static void run(SDL_Window* window, SDL_Renderer* renderer) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        game_update(window, renderer);
+        game_update(window, renderer, delta);
 
         print_fps(delta, renderer);
 
+        uint64_t before_present = stopwatch_ticks(&cap_timer);
         SDL_RenderPresent(renderer);
+        uint64_t after_present = stopwatch_ticks(&cap_timer);
+
+        // log_trace(soren_logger, "Presenting took %lld ticks", after_present - before_present);
 
         uint64_t frame_ticks = stopwatch_ticks(&cap_timer);
         if (frame_ticks < GAME_TICKS_PER_FRAME) {
@@ -115,19 +121,31 @@ int main(int argc, char** argv) {
 
     if (SDL_SetMemoryFunctions(soren_malloc, soren_calloc, soren_realloc, soren_free) < 0) {
         printf("Could not set custom SDL alloc functions! SDL_Error: %s\n", SDL_GetError());
+        e4c_context_end();
         return EXIT_FAILURE;
     }
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_GAMEPAD) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        e4c_context_end();
         return EXIT_FAILURE;
     }
 
     if (TTF_Init() != 0) {
         printf("TTF could not initialize! TTF_Error: %s\n", TTF_GetError());
+        e4c_context_end();
         return EXIT_FAILURE;
     }
 
+    IMG_InitFlags img_flags = IMG_INIT_PNG | IMG_INIT_JPG;
+
+    if (IMG_Init(img_flags) != img_flags) {
+        printf("SDL_Image could not initialize: %s\n", IMG_GetError());
+        e4c_context_end();
+        return EXIT_FAILURE;
+    }
+
+    soren_init(true);
     ecs_init();
     input_manager_init();
 
@@ -141,6 +159,7 @@ int main(int argc, char** argv) {
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d12");
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
 
     SDL_Renderer* renderer = SDL_CreateRenderer(window, NULL, SDL_RENDERER_ACCELERATED);
 
@@ -153,10 +172,12 @@ int main(int argc, char** argv) {
     SDL_GetRendererInfo(renderer, &info);
 
     printf("Renderer: %s\n", info.name);
+    printf("Flags: %d\n", info.flags);
 
     TTF_Font* ttf = TTF_OpenFont("ATypewriterForMe.ttf", 16);
     if (!ttf) {
         printf("Could not load font! SDL_Error: %s\n", SDL_GetError());
+        e4c_context_end();
         return EXIT_FAILURE;
     }
 

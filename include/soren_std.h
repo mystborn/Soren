@@ -17,10 +17,11 @@
     #endif
 #endif
 
-#include "e4c/e4c.h"
+#include "external/e4c.h"
 
 E4C_DECLARE_EXCEPTION(NotImplementedException);
 E4C_DECLARE_EXCEPTION(SdlException);
+E4C_DECLARE_EXCEPTION(JsonException);
 
 #define SOREN_SDL_ASSERT(condition) if (!(condition)) throw(SdlException, SDL_GetError())
 
@@ -59,6 +60,8 @@ static inline void soren_free(void* ptr) {
     GC_free(ptr);
 }
 
+SOREN_EXPORT soren_init(bool use_logger);
+
 #define soren_assert(condition) E4C_ASSERT(condition)
 
 #define gds_malloc soren_malloc
@@ -83,6 +86,10 @@ static inline void soren_free(void* ptr) {
 #define soren_free free
 
 #endif
+
+#include "external/mist_log.h"
+
+SOREN_EXPORT extern Logger* soren_logger;
 
 #ifndef SOREN_NO_THREADS
 

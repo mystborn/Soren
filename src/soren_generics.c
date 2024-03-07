@@ -3,6 +3,7 @@
 LIST_DEFINE_C(IntList, int_list, int)
 LIST_DEFINE_C(VectorList, vector_list, Vector)
 LIST_DEFINE_C(PointList, point_list, Point)
+LIST_DEFINE_C(RectFList, rectf_list, RectF)
 LIST_DEFINE_C(ScancodeList, scancode_list, SDL_Scancode)
 LIST_DEFINE_C(GamepadButtonList, gamepad_button_list, uint32_t)
 LIST_DEFINE_C(GamepadActionList, gamepad_action_list, GamepadAction)
