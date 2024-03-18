@@ -320,7 +320,7 @@ static void draw_arc_outline_parts(SDL_Renderer* renderer, Vector position, floa
     soren_assert(thickness > 0);
     soren_assert(segments > 2);
 
-    Matrix transform;
+    Matrix transform = MATRIX_IDENTITY;
     graphics_using_camera(renderer, &transform);
 
     float theta = (end_angle - start_angle) / segments;

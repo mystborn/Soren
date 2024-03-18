@@ -1,5 +1,6 @@
 #include <collisions/soren_colliders.h>
 #include <collisions/soren_collisions.h>
+#include <graphics/soren_primitives.h>
 
 #include "soren_collisions_shared.h"
 
@@ -9,11 +10,11 @@ void point_collider_free_resources(PointCollider* point) {
     }
 }
 
-float point_collider_rotation(PointCollider* point) {
+SOREN_EXPORT float point_collider_rotation(PointCollider* point) {
     return point->rotation;
 }
 
-void point_collider_set_rotation(PointCollider* point, float rotation) {
+SOREN_EXPORT void point_collider_set_rotation(PointCollider* point, float rotation) {
     if (rotation == point->rotation) {
         return;
     }
@@ -24,11 +25,11 @@ void point_collider_set_rotation(PointCollider* point, float rotation) {
     }
 }
 
-float point_collider_scale(PointCollider* point) {
+SOREN_EXPORT float point_collider_scale(PointCollider* point) {
     return point->scale;
 }
 
-void point_collider_set_scale(PointCollider* point, float scale) {
+SOREN_EXPORT void point_collider_set_scale(PointCollider* point, float scale) {
     if (scale == point->scale) {
         return;
     }
@@ -50,11 +51,11 @@ void point_collider_set_scale(PointCollider* point, float scale) {
     box_collider_set_scale(point->box, scale);
 }
 
-Vector point_collider_position(PointCollider* point) {
+SOREN_EXPORT Vector point_collider_position(PointCollider* point) {
     return point->position;
 }
 
-void point_collider_set_position(PointCollider* point, Vector position) {
+SOREN_EXPORT void point_collider_set_position(PointCollider* point, Vector position) {
     if (vector_equals(position, point->position)) {
         return;
     }
@@ -66,7 +67,7 @@ void point_collider_set_position(PointCollider* point, Vector position) {
     }
 }
 
-RectF point_collider_bounds(PointCollider* point) {
+SOREN_EXPORT RectF point_collider_bounds(PointCollider* point) {
     if (point->scale == 1) {
         return (RectF){
             point->position.x,
@@ -79,7 +80,15 @@ RectF point_collider_bounds(PointCollider* point) {
     }
 }
 
-bool point_collider_overlaps_rect(PointCollider* collider, RectF rect) {
+SOREN_EXPORT void point_collider_debug_draw(PointCollider* point, SDL_Renderer* renderer, SDL_FColor color) {
+    if (point->scale == 1) {
+        draw_point_color(renderer, point->position, color);
+    } else {
+        box_collider_debug_draw(point->box, renderer, color);
+    }
+}
+
+SOREN_EXPORT bool point_collider_overlaps_rect(PointCollider* collider, RectF rect) {
     if (point_collider_using_internal_collider(collider)) {
         return box_collider_overlaps_rect(collider->box, rect);
     } else {
@@ -87,7 +96,7 @@ bool point_collider_overlaps_rect(PointCollider* collider, RectF rect) {
     }
 }
 
-bool point_collider_overlaps_collider(PointCollider* collider, Collider* other) {
+SOREN_EXPORT bool point_collider_overlaps_collider(PointCollider* collider, Collider* other) {
     if (point_collider_using_internal_collider(collider)) {
         return box_collider_overlaps_collider(collider->box, other);
     }
@@ -118,7 +127,7 @@ bool point_collider_overlaps_collider(PointCollider* collider, Collider* other) 
     return false;
 }
 
-bool point_collider_overlaps_line(PointCollider* collider, Vector start, Vector end) {
+SOREN_EXPORT bool point_collider_overlaps_line(PointCollider* collider, Vector start, Vector end) {
     if (point_collider_using_internal_collider(collider)) {
         return box_collider_overlaps_line(collider->box, start, end);
     } else {
@@ -126,7 +135,7 @@ bool point_collider_overlaps_line(PointCollider* collider, Vector start, Vector 
     }
 }
 
-bool point_collider_contains_point(PointCollider* collider, Vector point) {
+SOREN_EXPORT bool point_collider_contains_point(PointCollider* collider, Vector point) {
     if (point_collider_using_internal_collider(collider)) {
         return box_collider_contains_point(collider->box, point);
     } else {
@@ -134,7 +143,7 @@ bool point_collider_contains_point(PointCollider* collider, Vector point) {
     }
 }
 
-bool point_collider_collides_rect(PointCollider* collider, RectF rect, CollisionResult* out_result) {
+SOREN_EXPORT bool point_collider_collides_rect(PointCollider* collider, RectF rect, CollisionResult* out_result) {
     if (point_collider_using_internal_collider(collider)) {
         return box_collider_collides_rect(collider->box, rect, out_result);
     } else {
@@ -142,7 +151,7 @@ bool point_collider_collides_rect(PointCollider* collider, RectF rect, Collision
     }
 }
 
-bool point_collider_collides_collider(PointCollider* collider, Collider* other, CollisionResult* out_result, RaycastHit* out_hit) {
+SOREN_EXPORT bool point_collider_collides_collider(PointCollider* collider, Collider* other, CollisionResult* out_result, RaycastHit* out_hit) {
     if (point_collider_using_internal_collider(collider)) {
         return box_collider_collides_collider(collider->box, other, out_result, out_hit);
     }
@@ -173,7 +182,7 @@ bool point_collider_collides_collider(PointCollider* collider, Collider* other, 
     return false;
 }
 
-bool point_collider_collides_line(PointCollider* collider, Vector start, Vector end, RaycastHit* out_result) {
+SOREN_EXPORT bool point_collider_collides_line(PointCollider* collider, Vector start, Vector end, RaycastHit* out_result) {
     if (point_collider_using_internal_collider(collider)) {
         return box_collider_collides_line(collider->box, start, end, out_result);
     } else {
@@ -187,7 +196,7 @@ bool point_collider_collides_line(PointCollider* collider, Vector start, Vector 
     }
 }
 
-bool point_collider_collides_point(PointCollider* collider, Vector point, CollisionResult* out_result) {
+SOREN_EXPORT bool point_collider_collides_point(PointCollider* collider, Vector point, CollisionResult* out_result) {
     if (point_collider_using_internal_collider(collider)) {
         return box_collider_collides_point(collider->box, point, out_result);
     } else {

@@ -372,7 +372,7 @@ SOREN_EXPORT void sprite_atlas_init_from_list(SpriteAtlas* atlas, SpriteList* sp
 SOREN_EXPORT void sprite_atlas_free_resources(SpriteAtlas* atlas) {
     Sprite* sprite;
     list_iter_start(atlas->animation_list, sprite) {
-        resource_unload_texture(sprite->texture);
+        resource_decrement(sprite->texture);
         soren_sprite_frame_list_free(&sprite->frames);
         string_free_resources(&sprite->name);
         soren_free(sprite);

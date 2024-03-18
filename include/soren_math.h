@@ -330,6 +330,22 @@ static inline Vector vector_rotate_around(
     return value;
 }
 
+static inline uint32_t point_hash(Point point) {
+    return (uint32_t)((point.x * 397) ^ point.y);
+}
+
+static inline bool point_equals(Point left, Point right) {
+    return left.x == right.x && left.y == right.y;
+}
+
+static inline int point_compare(Point left, Point right) {
+    if (left.x == right.x) {
+        return left.y < right.y ? -1 : (left.y > right.y ? 1 : 0);
+    } else {
+        return left.x < right.x ? -1 : 1;
+    }
+}
+
 static inline float rectf_left(RectF rect);
 static inline float rectf_top(RectF rect);
 static inline float rectf_right(RectF rect);

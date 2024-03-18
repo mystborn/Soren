@@ -1,5 +1,6 @@
 #include <collisions/soren_colliders.h>
 #include <collisions/soren_collisions.h>
+#include <graphics/soren_primitives.h>
 
 #include "soren_collisions_shared.h"
 
@@ -37,11 +38,11 @@ static void line_collider_clean(LineCollider* line) {
     };
 }
 
-float line_collider_rotation(LineCollider* line) {
+SOREN_EXPORT float line_collider_rotation(LineCollider* line) {
     return line->rotation;
 }
 
-void line_collider_set_rotation(LineCollider* line, float rotation) {
+SOREN_EXPORT void line_collider_set_rotation(LineCollider* line, float rotation) {
     if (rotation == line->rotation)
         return;
 
@@ -49,11 +50,11 @@ void line_collider_set_rotation(LineCollider* line, float rotation) {
     line->dirty = true;
 }
 
-float line_collider_scale(LineCollider* line) {
+SOREN_EXPORT float line_collider_scale(LineCollider* line) {
     return line->scale;
 }
 
-void line_collider_set_scale(LineCollider* line, float scale) {
+SOREN_EXPORT void line_collider_set_scale(LineCollider* line, float scale) {
     if (scale == line->scale)
         return;
 
@@ -61,11 +62,11 @@ void line_collider_set_scale(LineCollider* line, float scale) {
     line->dirty = true;
 }
 
-Vector line_collider_position(LineCollider* line) {
+SOREN_EXPORT Vector line_collider_position(LineCollider* line) {
     return line->position;
 }
 
-void line_collider_set_position(LineCollider* line, Vector position) {
+SOREN_EXPORT void line_collider_set_position(LineCollider* line, Vector position) {
     if (vector_equals(position, line->position))
         return;
 
@@ -73,7 +74,7 @@ void line_collider_set_position(LineCollider* line, Vector position) {
     line->dirty = true;
 }
 
-RectF line_collider_bounds(LineCollider* line) {
+SOREN_EXPORT RectF line_collider_bounds(LineCollider* line) {
     if (line->dirty) {
         line_collider_clean(line);
     }
@@ -84,7 +85,16 @@ RectF line_collider_bounds(LineCollider* line) {
     return bounds;
 }
 
-Vector line_collider_start(LineCollider* line) {
+SOREN_EXPORT void line_collider_debug_draw(LineCollider* line, SDL_Renderer* renderer, SDL_FColor color) {
+    draw_line_color(
+        renderer,
+        line_collider_adjusted_start(line),
+        line_collider_adjusted_end(line),
+        line->scale,
+        color);
+}
+
+SOREN_EXPORT Vector line_collider_start(LineCollider* line) {
     if (line->dirty) {
         line_collider_clean(line);
     }
@@ -92,7 +102,7 @@ Vector line_collider_start(LineCollider* line) {
     return line->start;
 }
 
-Vector line_collider_end(LineCollider* line) {
+SOREN_EXPORT Vector line_collider_end(LineCollider* line) {
     if (line->dirty) {
         line_collider_clean(line);
     }
@@ -100,7 +110,7 @@ Vector line_collider_end(LineCollider* line) {
     return line->end;
 }
 
-Vector line_collider_pivot(LineCollider* line) {
+SOREN_EXPORT Vector line_collider_pivot(LineCollider* line) {
     if (line->dirty) {
         line_collider_clean(line);
     }
@@ -108,21 +118,21 @@ Vector line_collider_pivot(LineCollider* line) {
     return line->pivot;
 }
 
-Vector line_collider_adjusted_start(LineCollider* line) {
+SOREN_EXPORT Vector line_collider_adjusted_start(LineCollider* line) {
     Vector start = line_collider_start(line);
     return vector_add(start, line->position);
 }
 
-Vector line_collider_adjusted_end(LineCollider* line) {
+SOREN_EXPORT Vector line_collider_adjusted_end(LineCollider* line) {
     Vector end = line_collider_end(line);
     return vector_add(end, line->position);
 }
 
-Vector line_collider_original_start(LineCollider* line) {
+SOREN_EXPORT Vector line_collider_original_start(LineCollider* line) {
     return line->original_start;
 }
 
-void line_collider_set_original_start(LineCollider* line, Vector start) {
+SOREN_EXPORT void line_collider_set_original_start(LineCollider* line, Vector start) {
     if (vector_equals(start, line->original_start))
         return;
 
@@ -130,11 +140,11 @@ void line_collider_set_original_start(LineCollider* line, Vector start) {
     line->dirty = true;
 }
 
-Vector line_collider_original_end(LineCollider* line) {
+SOREN_EXPORT Vector line_collider_original_end(LineCollider* line) {
     return line->original_end;
 }
 
-void line_collider_set_original_end(LineCollider* line, Vector end) {
+SOREN_EXPORT void line_collider_set_original_end(LineCollider* line, Vector end) {
     if (vector_equals(end, line->original_end))
         return;
 
@@ -142,11 +152,11 @@ void line_collider_set_original_end(LineCollider* line, Vector end) {
     line->dirty = true;
 }
 
-Vector line_collider_original_pivot(LineCollider* line) {
+SOREN_EXPORT Vector line_collider_original_pivot(LineCollider* line) {
     return line->original_pivot;
 }
 
-void line_collider_set_original_pivot(LineCollider* line, Vector pivot) {
+SOREN_EXPORT void line_collider_set_original_pivot(LineCollider* line, Vector pivot) {
     if (vector_equals(pivot, line->original_pivot))
         return;
 
@@ -154,12 +164,12 @@ void line_collider_set_original_pivot(LineCollider* line, Vector pivot) {
     line->dirty = true;
 }
 
-bool line_collider_overlaps_rect(LineCollider* collider, RectF rect) {
+SOREN_EXPORT bool line_collider_overlaps_rect(LineCollider* collider, RectF rect) {
     BoxCollider* box = collision_shared_box_collider_init(rect);
     return collision_line_to_poly(collider, (PolygonCollider*)box);
 }
 
-bool line_collider_overlaps_collider(LineCollider* collider, Collider* other) {
+SOREN_EXPORT bool line_collider_overlaps_collider(LineCollider* collider, Collider* other) {
     switch (other->collider_type) {
         case COLLIDER_POINT:
             PointCollider* point = (PointCollider*)other;
@@ -183,15 +193,15 @@ bool line_collider_overlaps_collider(LineCollider* collider, Collider* other) {
     return false;
 }
 
-bool line_collider_overlaps_line(LineCollider* collider, Vector start, Vector end) {
+SOREN_EXPORT bool line_collider_overlaps_line(LineCollider* collider, Vector start, Vector end) {
     return collision_line_to_segment(collider, start, end);
 }
 
-bool line_collider_contains_point(LineCollider* collider, Vector point) {
+SOREN_EXPORT bool line_collider_contains_point(LineCollider* collider, Vector point) {
     return collision_point_to_line(point, collider);
 }
 
-bool line_collider_collides_rect(LineCollider* collider, RectF rect, CollisionResult* out_result) {
+SOREN_EXPORT bool line_collider_collides_rect(LineCollider* collider, RectF rect, CollisionResult* out_result) {
     RaycastHit hit = (RaycastHit){0};
     BoxCollider* box = collision_shared_box_collider_init(rect);
     bool result = collision_line_to_poly_ext(collider, (PolygonCollider*)box, &hit);
@@ -202,7 +212,7 @@ bool line_collider_collides_rect(LineCollider* collider, RectF rect, CollisionRe
     return result;
 }
 
-bool line_collider_collides_collider(LineCollider* collider, Collider* other, CollisionResult* out_result, RaycastHit* out_hit) {
+SOREN_EXPORT bool line_collider_collides_collider(LineCollider* collider, Collider* other, CollisionResult* out_result, RaycastHit* out_hit) {
     switch (other->collider_type) {
         case COLLIDER_POINT:
             PointCollider* point = (PointCollider*)other;
@@ -226,7 +236,7 @@ bool line_collider_collides_collider(LineCollider* collider, Collider* other, Co
     return false;
 }
 
-bool line_collider_collides_line(LineCollider* collider, Vector start, Vector end, RaycastHit* out_result) {
+SOREN_EXPORT bool line_collider_collides_line(LineCollider* collider, Vector start, Vector end, RaycastHit* out_result) {
     CollisionResult collision_result = (CollisionResult){0};
     bool result = collision_line_to_segment_ext(collider, start, end, &collision_result);
     if (result && out_result) {
@@ -236,6 +246,6 @@ bool line_collider_collides_line(LineCollider* collider, Vector start, Vector en
     return result;
 }
 
-bool line_collider_collides_point(LineCollider* collider, Vector point, CollisionResult* out_result) {
+SOREN_EXPORT bool line_collider_collides_point(LineCollider* collider, Vector point, CollisionResult* out_result) {
     return collision_point_to_line_ext(point, collider, out_result);
 }

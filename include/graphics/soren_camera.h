@@ -11,6 +11,8 @@ typedef struct Camera {
     float rotation;
     Matrix matrix;
     bool matrix_dirty;
+    RectF viewport;
+    float viewport_rotation;
 } Camera;
 
 static inline void camera_init(Camera* camera, SDL_Renderer* renderer, int width, int height) {
@@ -23,6 +25,8 @@ static inline void camera_init(Camera* camera, SDL_Renderer* renderer, int width
     SDL_SetTextureBlendMode(camera->render_target, SDL_BLENDMODE_BLEND);
     camera->bounds = (RectF){ 0, 0, (float)width, (float)height };
     camera->rotation = 0;
+    camera->viewport = RECTF_EMPTY;
+    camera->viewport_rotation = 0;
     camera->matrix = MATRIX_IDENTITY;
     camera->matrix_dirty = true;
 }
@@ -31,6 +35,15 @@ static inline Camera* camera_create(SDL_Renderer* renderer, int width, int heigh
     Camera* camera = soren_malloc(sizeof(*camera));
     camera_init(camera, renderer, width, height);
     return camera;
+}
+
+static inline void camera_free_resources(Camera* camera) {
+    SDL_DestroyTexture(camera->render_target);
+}
+
+static inline void camera_free(Camera* camera) {
+    camera_free_resources(camera);
+    soren_free(camera);
 }
 
 static inline Matrix camera_view_matrix(Camera* camera) {
@@ -116,6 +129,22 @@ static inline Vector camera_size(Camera* camera) {
 
 static inline RectF camera_get_bounds(Camera* camera) {
     return camera->bounds;
+}
+
+static inline RectF camera_get_viewport(Camera* camera) {
+    return camera->viewport;
+}
+
+static inline void camera_set_viewport(Camera* camera, RectF viewport) {
+    camera->viewport = viewport;
+}
+
+static inline float camera_viewport_rotation(Camera* camera) {
+    return camera->viewport_rotation;
+}
+
+static inline void camera_set_viewport_rotation(Camera* camera, float rotation) {
+    camera->viewport_rotation = rotation;
 }
 
 static inline SDL_Texture* camera_render_target(Camera* camera) {

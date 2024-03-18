@@ -9,7 +9,7 @@
 
 static soren_thread_local BoxCollider* soren_shared_box_collider = NULL;
 
-bool collision_segment_to_segment_intersection(Vector first_start, Vector first_end, Vector second_start, Vector second_end, Vector* out_intersection);
+static bool collision_segment_to_segment_intersection(Vector first_start, Vector first_end, Vector second_start, Vector second_end, Vector* out_intersection);
 
 BoxCollider* collision_shared_box_collider_init(RectF bounds) {
     if (!soren_shared_box_collider) {
@@ -23,7 +23,7 @@ BoxCollider* collision_shared_box_collider_init(RectF bounds) {
     return soren_shared_box_collider;
 }
 
-void collision_result_remove_horizonal_translation(CollisionResult* result, Vector delta) {
+SOREN_EXPORT void collision_result_remove_horizonal_translation(CollisionResult* result, Vector delta) {
     if (soren_sign(result->normal.x) != soren_sign(delta.x) 
         || (delta.x == 0 && result->normal.x != 0))
     {
@@ -36,17 +36,17 @@ void collision_result_remove_horizonal_translation(CollisionResult* result, Vect
     }
 }
 
-void collision_result_invert(CollisionResult* result) {
+SOREN_EXPORT void collision_result_invert(CollisionResult* result) {
     result->minimum_translation_vector = vector_negate(result->minimum_translation_vector);
     result->normal = vector_negate(result->normal);
 }
 
-void collision_result_to_raycast_hit(CollisionResult* result, RaycastHit* hit) {
+SOREN_EXPORT void collision_result_to_raycast_hit(CollisionResult* result, RaycastHit* hit) {
     hit->point = result->minimum_translation_vector;
     hit->normal = result->normal;
 }
 
-String* collision_result_to_string(CollisionResult* result, String* str) {
+SOREN_EXPORT String* collision_result_to_string(CollisionResult* result, String* str) {
     if (!str) {
         str = string_create_ref("");
     }
@@ -60,12 +60,12 @@ String* collision_result_to_string(CollisionResult* result, String* str) {
     return str;
 }
 
-void raycast_hit_reset(RaycastHit* hit) {
+SOREN_EXPORT void raycast_hit_reset(RaycastHit* hit) {
     hit->fraction = 0;
     hit->distance = 0;
 }
 
-String* raycast_hit_to_string(RaycastHit* hit, String* str) {
+SOREN_EXPORT String* raycast_hit_to_string(RaycastHit* hit, String* str) {
     str = string_format(str, "RaycastHit { fraction: %f, distance: %f, normal: ", hit->fraction, hit->distance);
     vector_to_string(hit->normal, str);
     string_append(str, ", point: ");
@@ -74,20 +74,20 @@ String* raycast_hit_to_string(RaycastHit* hit, String* str) {
     return str;
 }
 
-void raycast_hit_to_collision_result(RaycastHit* hit, CollisionResult* result) {
+SOREN_EXPORT void raycast_hit_to_collision_result(RaycastHit* hit, CollisionResult* result) {
     result->minimum_translation_vector = hit->point;
     result->normal = hit->normal;
     result->point = hit->point;
 }
 
-bool collision_circle_to_circle(CircleCollider* first, CircleCollider* second) {
+SOREN_EXPORT bool collision_circle_to_circle(CircleCollider* first, CircleCollider* second) {
     return collision_radius_to_radius(
         circle_collider_position(first),
         circle_collider_radius(first),
         circle_collider_position(second),
         circle_collider_radius(second));
 }
-bool collision_circle_to_circle_ext(CircleCollider* first, CircleCollider* second, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_circle_to_circle_ext(CircleCollider* first, CircleCollider* second, CollisionResult* out_result) {
     return collision_radius_to_radius_ext(
         circle_collider_position(first),
         circle_collider_radius(first),
@@ -96,7 +96,7 @@ bool collision_circle_to_circle_ext(CircleCollider* first, CircleCollider* secon
         out_result);
 }
 
-bool collision_circle_to_radius(CircleCollider* circle, Vector position, float radius) {
+SOREN_EXPORT bool collision_circle_to_radius(CircleCollider* circle, Vector position, float radius) {
     return collision_radius_to_radius(
         circle_collider_position(circle),
         circle_collider_radius(circle),
@@ -104,7 +104,7 @@ bool collision_circle_to_radius(CircleCollider* circle, Vector position, float r
         radius);
 }
 
-bool collision_circle_to_radius_ext(CircleCollider* circle, Vector position, float radius, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_circle_to_radius_ext(CircleCollider* circle, Vector position, float radius, CollisionResult* out_result) {
     return collision_radius_to_radius_ext(
         circle_collider_position(circle),
         circle_collider_radius(circle),
@@ -113,13 +113,13 @@ bool collision_circle_to_radius_ext(CircleCollider* circle, Vector position, flo
         out_result);
 }
 
-bool collision_radius_to_radius(Vector first_position, float first_radius, Vector second_position, float second_radius) {
+SOREN_EXPORT bool collision_radius_to_radius(Vector first_position, float first_radius, Vector second_position, float second_radius) {
     float distance = vector_distance_squared(first_position, second_position);
     float sum_of_radii = first_radius + second_radius;
     return distance < sum_of_radii * sum_of_radii;
 }
 
-bool collision_radius_to_radius_ext(Vector first_position, float first_radius, Vector second_position, float second_radius, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_radius_to_radius_ext(Vector first_position, float first_radius, Vector second_position, float second_radius, CollisionResult* out_result) {
     CollisionResult result = (CollisionResult){ 0 };
 
     float distance = vector_distance_squared(first_position, second_position);
@@ -140,7 +140,7 @@ bool collision_radius_to_radius_ext(Vector first_position, float first_radius, V
     return collided;
 }
 
-bool collision_circle_to_box(CircleCollider* first, BoxCollider* second) {
+SOREN_EXPORT bool collision_circle_to_box(CircleCollider* first, BoxCollider* second) {
     if (collider_rotation(second) != 0) {
         return collision_circle_to_polygon(first, (PolygonCollider*)second);
     }
@@ -154,7 +154,7 @@ bool collision_circle_to_box(CircleCollider* first, BoxCollider* second) {
     );
 }
 
-bool collision_circle_to_box_ext(CircleCollider* first, BoxCollider* second, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_circle_to_box_ext(CircleCollider* first, BoxCollider* second, CollisionResult* out_result) {
     if (collider_rotation(second) != 0) {
         return collision_circle_to_polygon_ext(first, (PolygonCollider*)second, out_result);
     }
@@ -169,7 +169,7 @@ bool collision_circle_to_box_ext(CircleCollider* first, BoxCollider* second, Col
     );
 }
 
-bool collision_circle_to_rect(CircleCollider* first, RectF second) {
+SOREN_EXPORT bool collision_circle_to_rect(CircleCollider* first, RectF second) {
     return collision_radius_to_rect(
         circle_collider_position(first),
         circle_collider_radius(first),
@@ -177,7 +177,7 @@ bool collision_circle_to_rect(CircleCollider* first, RectF second) {
     );
 }
 
-bool collision_circle_to_rect_ext(CircleCollider* first, RectF second, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_circle_to_rect_ext(CircleCollider* first, RectF second, CollisionResult* out_result) {
     return collision_radius_to_rect_ext(
         circle_collider_position(first),
         circle_collider_radius(first),
@@ -186,7 +186,7 @@ bool collision_circle_to_rect_ext(CircleCollider* first, RectF second, Collision
     );
 }
 
-bool collision_radius_to_rect(Vector position, float radius, RectF rect) {
+SOREN_EXPORT bool collision_radius_to_rect(Vector position, float radius, RectF rect) {
     Vector point = closest_point_on_rectf_to_point(rect, position);
     float distance = vector_distance_squared(point, position);
 
@@ -196,7 +196,7 @@ bool collision_radius_to_rect(Vector position, float radius, RectF rect) {
     return false;
 }
 
-bool collision_radius_to_rect_ext(Vector position, float radius, RectF rect, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_radius_to_rect_ext(Vector position, float radius, RectF rect, CollisionResult* out_result) {
     CollisionResult result = (CollisionResult){0};
     bool colliding = false;
 
@@ -231,7 +231,7 @@ bool collision_radius_to_rect_ext(Vector position, float radius, RectF rect, Col
     return colliding;
 }
 
-bool collision_circle_to_polygon(CircleCollider* first, PolygonCollider* second) {
+SOREN_EXPORT bool collision_circle_to_polygon(CircleCollider* first, PolygonCollider* second) {
     Vector position = vector_subtract(polygon_collider_position(second), polygon_collider_center(second));
     int count = 0;
     Vector* points = polygon_collider_points(second, &count);
@@ -244,7 +244,7 @@ bool collision_circle_to_polygon(CircleCollider* first, PolygonCollider* second)
         position);
 }
 
-bool collision_circle_to_polygon_ext(CircleCollider* first, PolygonCollider* second, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_circle_to_polygon_ext(CircleCollider* first, PolygonCollider* second, CollisionResult* out_result) {
     Vector position = vector_subtract(polygon_collider_position(second), polygon_collider_center(second));
     int count = 0;
     Vector* points = polygon_collider_points(second, &count);
@@ -258,7 +258,7 @@ bool collision_circle_to_polygon_ext(CircleCollider* first, PolygonCollider* sec
         out_result);
 }
 
-bool collision_circle_to_shape(CircleCollider* first, Vector* points, int points_count, Vector shape_position) {
+SOREN_EXPORT bool collision_circle_to_shape(CircleCollider* first, Vector* points, int points_count, Vector shape_position) {
     return collision_radius_to_shape(
         circle_collider_position(first),
         circle_collider_radius(first),
@@ -267,7 +267,7 @@ bool collision_circle_to_shape(CircleCollider* first, Vector* points, int points
         shape_position);
 }
 
-bool collision_circle_to_shape_ext(CircleCollider* first, Vector* points, int points_count, Vector shape_position, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_circle_to_shape_ext(CircleCollider* first, Vector* points, int points_count, Vector shape_position, CollisionResult* out_result) {
     return collision_radius_to_shape_ext(
         circle_collider_position(first),
         circle_collider_radius(first),
@@ -277,7 +277,7 @@ bool collision_circle_to_shape_ext(CircleCollider* first, Vector* points, int po
         out_result);
 }
 
-bool collision_radius_to_polygon(Vector position, float radius, PolygonCollider* second) {
+SOREN_EXPORT bool collision_radius_to_polygon(Vector position, float radius, PolygonCollider* second) {
     Vector poly_position = vector_subtract(polygon_collider_position(second), polygon_collider_center(second));
     int count = 0;
     Vector* points = polygon_collider_points(second, &count);
@@ -290,7 +290,7 @@ bool collision_radius_to_polygon(Vector position, float radius, PolygonCollider*
         poly_position);
 }
 
-bool collision_radius_to_polygon_ext(Vector position, float radius, PolygonCollider* second, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_radius_to_polygon_ext(Vector position, float radius, PolygonCollider* second, CollisionResult* out_result) {
     Vector poly_position = vector_subtract(polygon_collider_position(second), polygon_collider_center(second));
     int count = 0;
     Vector* points = polygon_collider_points(second, &count);
@@ -304,7 +304,7 @@ bool collision_radius_to_polygon_ext(Vector position, float radius, PolygonColli
         out_result);
 }
 
-bool collision_radius_to_shape(Vector position, float radius, Vector* points, int points_count, Vector shape_position) {
+SOREN_EXPORT bool collision_radius_to_shape(Vector position, float radius, Vector* points, int points_count, Vector shape_position) {
     Vector offset = vector_subtract(position, shape_position);
 
     if (collision_point_to_shape(offset, points, points_count, shape_position))
@@ -316,7 +316,7 @@ bool collision_radius_to_shape(Vector position, float radius, Vector* points, in
     return distance_squared <= radius * radius;
 }
 
-bool collision_radius_to_shape_ext(Vector position, float radius, Vector* points, int points_count, Vector shape_position, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_radius_to_shape_ext(Vector position, float radius, Vector* points, int points_count, Vector shape_position, CollisionResult* out_result) {
     CollisionResult result = (CollisionResult){0};
     float distance = 0;
 
@@ -350,7 +350,7 @@ bool collision_radius_to_shape_ext(Vector position, float radius, Vector* points
     return true;
 }
 
-bool collision_polygon_to_polygon(PolygonCollider* first, PolygonCollider* second) {
+SOREN_EXPORT bool collision_polygon_to_polygon(PolygonCollider* first, PolygonCollider* second) {
     int first_count = 0;
     Vector* first_points = polygon_collider_points(first, &first_count);
     Vector* first_edges = polygon_collider_edge_normals(first, NULL);
@@ -372,7 +372,7 @@ bool collision_polygon_to_polygon(PolygonCollider* first, PolygonCollider* secon
         second_position);
 }
 
-bool collision_polygon_to_polygon_ext(PolygonCollider* first, PolygonCollider* second, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_polygon_to_polygon_ext(PolygonCollider* first, PolygonCollider* second, CollisionResult* out_result) {
     int first_count = 0;
     Vector* first_points = polygon_collider_points(first, &first_count);
     Vector* first_edges = polygon_collider_edge_normals(first, NULL);
@@ -395,7 +395,7 @@ bool collision_polygon_to_polygon_ext(PolygonCollider* first, PolygonCollider* s
         out_result);
 }
 
-bool collision_polygon_to_shape(PolygonCollider* first, Vector* points, Vector* edge_normals, int points_count, Vector shape_position) {
+SOREN_EXPORT bool collision_polygon_to_shape(PolygonCollider* first, Vector* points, Vector* edge_normals, int points_count, Vector shape_position) {
     int first_count = 0;
     Vector* first_points = polygon_collider_points(first, &first_count);
     Vector* first_edges = polygon_collider_edge_normals(first, NULL);
@@ -412,7 +412,7 @@ bool collision_polygon_to_shape(PolygonCollider* first, Vector* points, Vector* 
         shape_position);
 }
 
-bool collision_polygon_to_shape_ext(PolygonCollider* first, Vector* points, Vector* edge_normals, int points_count, Vector shape_position, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_polygon_to_shape_ext(PolygonCollider* first, Vector* points, Vector* edge_normals, int points_count, Vector shape_position, CollisionResult* out_result) {
     int first_count = 0;
     Vector* first_points = polygon_collider_points(first, &first_count);
     Vector* first_edges = polygon_collider_edge_normals(first, NULL);
@@ -452,7 +452,7 @@ static inline float collision_shape_to_shape_interval_distance(float min_a, floa
     return min_a - max_b;
 }
 
-bool collision_shape_to_shape(
+SOREN_EXPORT bool collision_shape_to_shape(
     Vector* first_points,
     Vector* first_edge_normals,
     int first_points_count,
@@ -493,7 +493,7 @@ bool collision_shape_to_shape(
     return true;
 }
 
-bool collision_shape_to_shape_ext(
+SOREN_EXPORT bool collision_shape_to_shape_ext(
     Vector* first_points,
     Vector* first_edge_normals,
     int first_points_count,
@@ -560,7 +560,7 @@ bool collision_shape_to_shape_ext(
         return collides;
 }
 
-bool collision_box_to_box(BoxCollider* first, BoxCollider* second) {
+SOREN_EXPORT bool collision_box_to_box(BoxCollider* first, BoxCollider* second) {
     if (collider_rotation(first) != 0 || collider_rotation(second) != 0) {
         return collision_polygon_to_polygon((PolygonCollider*)first, (PolygonCollider*)second);
     }
@@ -571,7 +571,7 @@ bool collision_box_to_box(BoxCollider* first, BoxCollider* second) {
     return collision_rect_to_rect(first_bounds, second_bounds);
 }
 
-bool collision_box_to_box_ext(BoxCollider* first, BoxCollider* second, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_box_to_box_ext(BoxCollider* first, BoxCollider* second, CollisionResult* out_result) {
     if (collider_rotation(first) != 0 || collider_rotation(second) != 0) {
         return collision_polygon_to_polygon((PolygonCollider*)first, (PolygonCollider*)second);
     }
@@ -582,7 +582,7 @@ bool collision_box_to_box_ext(BoxCollider* first, BoxCollider* second, Collision
     return collision_rect_to_rect_ext(first_bounds, second_bounds, out_result);
 }
 
-bool collision_box_to_rect(BoxCollider* first, RectF second) {
+SOREN_EXPORT bool collision_box_to_rect(BoxCollider* first, RectF second) {
     if (collider_rotation(first) != 0) {
         BoxCollider* shared = collision_shared_box_collider_init(second);
         return collision_polygon_to_polygon((PolygonCollider*)first, (PolygonCollider*)shared);
@@ -593,7 +593,7 @@ bool collision_box_to_rect(BoxCollider* first, RectF second) {
     return collision_rect_to_rect(first_bounds, second);
 }
 
-bool collision_box_to_rect_ext(BoxCollider* first, RectF second, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_box_to_rect_ext(BoxCollider* first, RectF second, CollisionResult* out_result) {
     if (collider_rotation(first) != 0) {
         BoxCollider* shared = collision_shared_box_collider_init(second);
         return collision_polygon_to_polygon_ext((PolygonCollider*)first, (PolygonCollider*)shared, out_result);
@@ -604,7 +604,7 @@ bool collision_box_to_rect_ext(BoxCollider* first, RectF second, CollisionResult
     return collision_rect_to_rect_ext(first_bounds, second, out_result);
 }
 
-bool collision_rect_to_rect(RectF first, RectF second) {
+SOREN_EXPORT bool collision_rect_to_rect(RectF first, RectF second) {
     return rectf_contains_or_intersects(first, second);
 }
 
@@ -617,7 +617,7 @@ static inline RectF collision_rect_to_rect_minkowski_difference(RectF first, Rec
     };
 }
 
-bool collision_rect_to_rect_ext(RectF first, RectF second, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_rect_to_rect_ext(RectF first, RectF second, CollisionResult* out_result) {
     CollisionResult result = (CollisionResult){0};
     bool collided = false;
     RectF diff = collision_rect_to_rect_minkowski_difference(first, second);
@@ -641,7 +641,7 @@ bool collision_rect_to_rect_ext(RectF first, RectF second, CollisionResult* out_
         return collided;
 }
 
-bool collision_point_to_circle(Vector point, CircleCollider* circle) {
+SOREN_EXPORT bool collision_point_to_circle(Vector point, CircleCollider* circle) {
     return collision_radius_to_radius(
         point,
         SOREN_POINT_RADIUS,
@@ -649,7 +649,7 @@ bool collision_point_to_circle(Vector point, CircleCollider* circle) {
         circle_collider_radius(circle));
 }
 
-bool collision_point_to_circle_ext(Vector point, CircleCollider* circle, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_point_to_circle_ext(Vector point, CircleCollider* circle, CollisionResult* out_result) {
     return collision_radius_to_radius_ext(
         point,
         SOREN_POINT_RADIUS,
@@ -658,16 +658,16 @@ bool collision_point_to_circle_ext(Vector point, CircleCollider* circle, Collisi
         out_result);
 }
 
-bool collision_point_to_radius(Vector point, Vector circle_pos, float radius) {
+SOREN_EXPORT bool collision_point_to_radius(Vector point, Vector circle_pos, float radius) {
     // Treat point as a circle with a radius of one.
     return collision_radius_to_radius(point, SOREN_POINT_RADIUS, circle_pos, radius);
 }
 
-bool collision_point_to_radius_ext(Vector point, Vector circle_pos, float radius, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_point_to_radius_ext(Vector point, Vector circle_pos, float radius, CollisionResult* out_result) {
     return collision_radius_to_radius_ext(point, SOREN_POINT_RADIUS, circle_pos, radius, out_result);
 }
 
-bool collision_point_to_box(Vector point, BoxCollider* box) {
+SOREN_EXPORT bool collision_point_to_box(Vector point, BoxCollider* box) {
     if (collider_rotation(box) != 0) {
         return collision_point_to_poly(point, (PolygonCollider*)box);
     }
@@ -676,7 +676,7 @@ bool collision_point_to_box(Vector point, BoxCollider* box) {
     return collision_point_to_rect(point, bounds);
 }
 
-bool collision_point_to_box_ext(Vector point, BoxCollider* box, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_point_to_box_ext(Vector point, BoxCollider* box, CollisionResult* out_result) {
     if (collider_rotation(box) != 0) {
         return collision_point_to_poly_ext(point, (PolygonCollider*)box, out_result);
     }
@@ -685,11 +685,11 @@ bool collision_point_to_box_ext(Vector point, BoxCollider* box, CollisionResult*
     return collision_point_to_rect_ext(point, bounds, out_result);
 }
 
-bool collision_point_to_rect(Vector point, RectF box) {
+SOREN_EXPORT bool collision_point_to_rect(Vector point, RectF box) {
     return rectf_contains(box, point);
 }
 
-bool collision_point_to_rect_ext(Vector point, RectF box, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_point_to_rect_ext(Vector point, RectF box, CollisionResult* out_result) {
     CollisionResult result = (CollisionResult){0};
     bool collided = false;
 
@@ -706,7 +706,7 @@ bool collision_point_to_rect_ext(Vector point, RectF box, CollisionResult* out_r
     return collided;
 }
 
-bool collision_point_to_poly(Vector point, PolygonCollider* poly) {
+SOREN_EXPORT bool collision_point_to_poly(Vector point, PolygonCollider* poly) {
     int points_count = 0;
     Vector shape_position = vector_subtract(polygon_collider_position(poly), polygon_collider_center(poly));
     Vector* points = polygon_collider_points(poly, &points_count);
@@ -718,7 +718,7 @@ bool collision_point_to_poly(Vector point, PolygonCollider* poly) {
         shape_position);
 }
 
-bool collision_point_to_poly_ext(Vector point, PolygonCollider* poly, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_point_to_poly_ext(Vector point, PolygonCollider* poly, CollisionResult* out_result) {
     int points_count = 0;
     Vector shape_position = vector_subtract(polygon_collider_position(poly), polygon_collider_center(poly));
     Vector* points = polygon_collider_points(poly, &points_count);
@@ -731,7 +731,7 @@ bool collision_point_to_poly_ext(Vector point, PolygonCollider* poly, CollisionR
         out_result);
 }
 
-bool collision_point_to_shape(Vector point, Vector* points, int points_count, Vector shape_position) {
+SOREN_EXPORT bool collision_point_to_shape(Vector point, Vector* points, int points_count, Vector shape_position) {
     point = vector_subtract(point, shape_position);
     bool inside = false;
 
@@ -753,7 +753,7 @@ bool collision_point_to_shape(Vector point, Vector* points, int points_count, Ve
     return inside;
 }
 
-bool collision_point_to_shape_ext(Vector point, Vector* points, int points_count, Vector shape_position, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_point_to_shape_ext(Vector point, Vector* points, int points_count, Vector shape_position, CollisionResult* out_result) {
     CollisionResult result = (CollisionResult){0};
 
     bool collides = collision_point_to_shape(point, points, points_count, shape_position);
@@ -772,14 +772,14 @@ bool collision_point_to_shape_ext(Vector point, Vector* points, int points_count
     return collides;
 }
 
-bool collision_point_to_line(Vector point, LineCollider* line) {
+SOREN_EXPORT bool collision_point_to_line(Vector point, LineCollider* line) {
     return collision_point_to_segment(
         point,
         line_collider_adjusted_start(line),
         line_collider_adjusted_end(line));
 }
 
-bool collision_point_to_line_ext(Vector point, LineCollider* line, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_point_to_line_ext(Vector point, LineCollider* line, CollisionResult* out_result) {
     return collision_point_to_segment_ext(
         point,
         line_collider_adjusted_start(line),
@@ -787,12 +787,12 @@ bool collision_point_to_line_ext(Vector point, LineCollider* line, CollisionResu
         out_result);
 }
 
-bool collision_point_to_segment(Vector point, Vector line_start, Vector line_end) {
+SOREN_EXPORT bool collision_point_to_segment(Vector point, Vector line_start, Vector line_end) {
     float distances = vector_distance(line_start, point) + vector_distance(point, line_end);
     return distances == vector_distance(line_start, line_end);
 }
 
-bool collision_point_to_segment_ext(Vector point, Vector line_start, Vector line_end, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_point_to_segment_ext(Vector point, Vector line_start, Vector line_end, CollisionResult* out_result) {
     CollisionResult result = (CollisionResult){0};
     bool collided = false;
     if (collision_point_to_segment(point, line_start, line_end)) {
@@ -812,10 +812,10 @@ bool collision_point_to_segment_ext(Vector point, Vector line_start, Vector line
     return collided;
 }
 
-bool collision_point_to_point(Vector first, Vector second) {
+SOREN_EXPORT bool collision_point_to_point(Vector first, Vector second) {
     return vector_equals(first, second);
 }
-bool collision_point_to_point_ext(Vector first, Vector second, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_point_to_point_ext(Vector first, Vector second, CollisionResult* out_result) {
     CollisionResult result = (CollisionResult){0};
     bool collides = vector_equals(first, second);
     if (collides) {
@@ -831,7 +831,7 @@ bool collision_point_to_point_ext(Vector first, Vector second, CollisionResult* 
     return collides;
 }
 
-bool collision_line_to_poly(LineCollider* line, PolygonCollider* polygon) {
+SOREN_EXPORT bool collision_line_to_poly(LineCollider* line, PolygonCollider* polygon) {
     int points_count = 0;
     Vector shape_position = vector_subtract(polygon_collider_position(polygon), polygon_collider_center(polygon));
     Vector* points = polygon_collider_points(polygon, &points_count);
@@ -844,7 +844,7 @@ bool collision_line_to_poly(LineCollider* line, PolygonCollider* polygon) {
         shape_position);
 }
 
-bool collision_line_to_poly_ext(LineCollider* line, PolygonCollider* polygon, RaycastHit* out_result) {
+SOREN_EXPORT bool collision_line_to_poly_ext(LineCollider* line, PolygonCollider* polygon, RaycastHit* out_result) {
     int points_count = 0;
     Vector shape_position = vector_subtract(polygon_collider_position(polygon), polygon_collider_center(polygon));
     Vector* points = polygon_collider_points(polygon, &points_count);
@@ -858,7 +858,7 @@ bool collision_line_to_poly_ext(LineCollider* line, PolygonCollider* polygon, Ra
         out_result);
 }
 
-bool collision_segment_to_poly(Vector start, Vector end, PolygonCollider* polygon) {
+SOREN_EXPORT bool collision_segment_to_poly(Vector start, Vector end, PolygonCollider* polygon) {
     int points_count = 0;
     Vector shape_position = vector_subtract(polygon_collider_position(polygon), polygon_collider_center(polygon));
     Vector* points = polygon_collider_points(polygon, &points_count);
@@ -871,7 +871,7 @@ bool collision_segment_to_poly(Vector start, Vector end, PolygonCollider* polygo
         shape_position);
 }
 
-bool collision_segment_to_poly_ext(Vector start, Vector end, PolygonCollider* polygon, RaycastHit* out_result) {
+SOREN_EXPORT bool collision_segment_to_poly_ext(Vector start, Vector end, PolygonCollider* polygon, RaycastHit* out_result) {
     int points_count = 0;
     Vector shape_position = vector_subtract(polygon_collider_position(polygon), polygon_collider_center(polygon));
     Vector* points = polygon_collider_points(polygon, &points_count);
@@ -885,7 +885,7 @@ bool collision_segment_to_poly_ext(Vector start, Vector end, PolygonCollider* po
         out_result);
 }
 
-bool collision_segment_to_shape(Vector start, Vector end, Vector* points, int points_count, Vector shape_position) {
+SOREN_EXPORT bool collision_segment_to_shape(Vector start, Vector end, Vector* points, int points_count, Vector shape_position) {
     for (int i = 0, j = points_count - 1; i < points_count; j = i++) {
         Vector edge_start = vector_add(points[j], shape_position);
         Vector edge_end = vector_add(points[i], shape_position);
@@ -898,7 +898,7 @@ bool collision_segment_to_shape(Vector start, Vector end, Vector* points, int po
     return false;
 }
 
-bool collision_segment_to_shape_ext(Vector start, Vector end, Vector* points, int points_count, Vector shape_position, RaycastHit* out_result) {
+SOREN_EXPORT bool collision_segment_to_shape_ext(Vector start, Vector end, Vector* points, int points_count, Vector shape_position, RaycastHit* out_result) {
     RaycastHit hit = (RaycastHit){0};
     Vector normal = VECTOR_ZERO;
     Vector intersection_point = VECTOR_ZERO;
@@ -942,7 +942,7 @@ bool collision_segment_to_shape_ext(Vector start, Vector end, Vector* points, in
     return intersects;
 }
 
-bool collision_line_to_circle(LineCollider* line, CircleCollider* circle) {
+SOREN_EXPORT bool collision_line_to_circle(LineCollider* line, CircleCollider* circle) {
     return collision_segment_to_radius(
         line_collider_adjusted_start(line),
         line_collider_adjusted_end(line),
@@ -950,7 +950,7 @@ bool collision_line_to_circle(LineCollider* line, CircleCollider* circle) {
         circle_collider_radius(circle));
 }
 
-bool collision_line_to_circle_ext(LineCollider* line, CircleCollider* circle, RaycastHit* out_result) {
+SOREN_EXPORT bool collision_line_to_circle_ext(LineCollider* line, CircleCollider* circle, RaycastHit* out_result) {
     return collision_segment_to_radius_ext(
         line_collider_adjusted_start(line),
         line_collider_adjusted_end(line),
@@ -959,7 +959,7 @@ bool collision_line_to_circle_ext(LineCollider* line, CircleCollider* circle, Ra
         out_result);
 }
 
-bool collision_segment_to_circle(Vector start, Vector end, CircleCollider* circle) {
+SOREN_EXPORT bool collision_segment_to_circle(Vector start, Vector end, CircleCollider* circle) {
     return collision_segment_to_radius(
         start,
         end,
@@ -967,7 +967,7 @@ bool collision_segment_to_circle(Vector start, Vector end, CircleCollider* circl
         circle_collider_radius(circle));
 }
 
-bool collision_segment_to_circle_ext(Vector start, Vector end, CircleCollider* circle, RaycastHit* out_result) {
+SOREN_EXPORT bool collision_segment_to_circle_ext(Vector start, Vector end, CircleCollider* circle, RaycastHit* out_result) {
     return collision_segment_to_radius_ext(
         start,
         end,
@@ -976,7 +976,7 @@ bool collision_segment_to_circle_ext(Vector start, Vector end, CircleCollider* c
         out_result);
 }
 
-bool collision_line_to_radius(LineCollider* line, Vector position, float radius) {
+SOREN_EXPORT bool collision_line_to_radius(LineCollider* line, Vector position, float radius) {
     return collision_segment_to_radius(
         line_collider_adjusted_start(line),
         line_collider_adjusted_end(line),
@@ -984,7 +984,7 @@ bool collision_line_to_radius(LineCollider* line, Vector position, float radius)
         radius);
 }
 
-bool collision_line_to_radius_ext(LineCollider* line, Vector position, float radius, RaycastHit* out_result) {
+SOREN_EXPORT bool collision_line_to_radius_ext(LineCollider* line, Vector position, float radius, RaycastHit* out_result) {
     return collision_segment_to_radius_ext(
         line_collider_adjusted_start(line),
         line_collider_adjusted_end(line),
@@ -993,7 +993,7 @@ bool collision_line_to_radius_ext(LineCollider* line, Vector position, float rad
         out_result);
 }
 
-bool collision_segment_to_radius(Vector start, Vector end, Vector position, float radius) {
+SOREN_EXPORT bool collision_segment_to_radius(Vector start, Vector end, Vector position, float radius) {
     float line_length = vector_distance(start, end);
     Vector d = vector_divide_scalar(vector_subtract(end, start), line_length);
     Vector m = vector_subtract(start, position);
@@ -1013,7 +1013,7 @@ bool collision_segment_to_radius(Vector start, Vector end, Vector position, floa
     return true;
 }
 
-bool collision_segment_to_radius_ext(Vector start, Vector end, Vector position, float radius, RaycastHit* out_result) {
+SOREN_EXPORT bool collision_segment_to_radius_ext(Vector start, Vector end, Vector position, float radius, RaycastHit* out_result) {
     RaycastHit hit = (RaycastHit){0};
     bool collides = false;
 
@@ -1053,7 +1053,7 @@ bool collision_segment_to_radius_ext(Vector start, Vector end, Vector position, 
         return collides;
 }
 
-bool collision_line_to_line(LineCollider* first, LineCollider* second) {
+SOREN_EXPORT bool collision_line_to_line(LineCollider* first, LineCollider* second) {
     return collision_segment_to_segment_intersection(
         line_collider_adjusted_start(first),
         line_collider_adjusted_end(first),
@@ -1062,7 +1062,7 @@ bool collision_line_to_line(LineCollider* first, LineCollider* second) {
         NULL);
 }
 
-bool collision_line_to_line_ext(LineCollider* first, LineCollider* second, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_line_to_line_ext(LineCollider* first, LineCollider* second, CollisionResult* out_result) {
     return collision_segment_to_segment_ext(
         line_collider_adjusted_start(first),
         line_collider_adjusted_end(first),
@@ -1071,7 +1071,7 @@ bool collision_line_to_line_ext(LineCollider* first, LineCollider* second, Colli
         out_result);
 }
 
-bool collision_line_to_segment(LineCollider* line, Vector start, Vector end) {
+SOREN_EXPORT bool collision_line_to_segment(LineCollider* line, Vector start, Vector end) {
     return collision_segment_to_segment_intersection(
         line_collider_adjusted_start(line),
         line_collider_adjusted_end(line),
@@ -1080,7 +1080,7 @@ bool collision_line_to_segment(LineCollider* line, Vector start, Vector end) {
         NULL);
 }
 
-bool collision_line_to_segment_ext(LineCollider* line, Vector start, Vector end, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_line_to_segment_ext(LineCollider* line, Vector start, Vector end, CollisionResult* out_result) {
     return collision_segment_to_segment_ext(
         line_collider_adjusted_start(line),
         line_collider_adjusted_end(line),
@@ -1089,7 +1089,7 @@ bool collision_line_to_segment_ext(LineCollider* line, Vector start, Vector end,
         out_result);
 }
 
-bool collision_segment_to_segment_intersection(Vector first_start, Vector first_end, Vector second_start, Vector second_end, Vector* out_intersection) {
+static bool collision_segment_to_segment_intersection(Vector first_start, Vector first_end, Vector second_start, Vector second_end, Vector* out_intersection) {
     Vector intersection = VECTOR_ZERO;
     
     Vector b = vector_subtract(first_end, first_start);
@@ -1124,7 +1124,7 @@ bool collision_segment_to_segment_intersection(Vector first_start, Vector first_
         return collides;
 }
 
-bool collision_segment_to_segment(Vector first_start, Vector first_end, Vector second_start, Vector second_end) {
+SOREN_EXPORT bool collision_segment_to_segment(Vector first_start, Vector first_end, Vector second_start, Vector second_end) {
     return collision_segment_to_segment_intersection(
         first_start,
         first_end,
@@ -1133,7 +1133,7 @@ bool collision_segment_to_segment(Vector first_start, Vector first_end, Vector s
         NULL);
 }
 
-bool collision_segment_to_segment_ext(Vector first_start, Vector first_end, Vector second_start, Vector second_end, CollisionResult* out_result) {
+SOREN_EXPORT bool collision_segment_to_segment_ext(Vector first_start, Vector first_end, Vector second_start, Vector second_end, CollisionResult* out_result) {
     CollisionResult result = (CollisionResult){0};
     Vector intersection;
 

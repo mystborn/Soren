@@ -11,19 +11,19 @@ void collider_assert_scale(float scale) {
     }
 }
 
-void collider_init(Collider* collider, ColliderType type) {
+SOREN_EXPORT void collider_init(Collider* collider, ColliderType type) {
     collider->collider_type = type;
     collider->tag = NULL;
     collider->id = 0;
 }
 
-void collider_free(Collider* collider) {
+SOREN_EXPORT void collider_free(Collider* collider) {
     collider_free_resources(collider);
 
     SDL_free(collider);
 }
 
-void collider_free_resources(Collider* collider) {
+SOREN_EXPORT void collider_free_resources(Collider* collider) {
     switch (collider->collider_type) {
         case COLLIDER_POLYGON:
             polygon_collider_free_resources((PolygonCollider*)collider);
@@ -39,7 +39,7 @@ void collider_free_resources(Collider* collider) {
     }
 }
 
-float collider_rotation_impl(Collider* collider) {
+SOREN_EXPORT float collider_rotation_impl(Collider* collider) {
     switch(collider->collider_type) {
         case COLLIDER_POINT:
             return point_collider_rotation((PointCollider*)collider);
@@ -56,7 +56,7 @@ float collider_rotation_impl(Collider* collider) {
     }
 }
 
-void collider_set_rotation_impl(Collider* collider, float rotation) {
+SOREN_EXPORT void collider_set_rotation_impl(Collider* collider, float rotation) {
     switch(collider->collider_type) {
         case COLLIDER_POINT:
             point_collider_set_rotation((PointCollider*)collider, rotation);
@@ -78,7 +78,7 @@ void collider_set_rotation_impl(Collider* collider, float rotation) {
     }
 }
 
-float collider_scale_impl(Collider* collider) {
+SOREN_EXPORT float collider_scale_impl(Collider* collider) {
     switch(collider->collider_type) {
         case COLLIDER_POINT:
             return point_collider_scale((PointCollider*)collider);
@@ -95,7 +95,7 @@ float collider_scale_impl(Collider* collider) {
     }
 }
 
-void collider_set_scale_impl(Collider* collider, float scale) {
+SOREN_EXPORT void collider_set_scale_impl(Collider* collider, float scale) {
     switch(collider->collider_type) {
         case COLLIDER_POINT:
             point_collider_set_scale((PointCollider*)collider, scale);
@@ -117,7 +117,7 @@ void collider_set_scale_impl(Collider* collider, float scale) {
     }
 }
 
-Vector collider_position_impl(Collider* collider) {
+SOREN_EXPORT Vector collider_position_impl(Collider* collider) {
     switch(collider->collider_type) {
         case COLLIDER_POINT:
             return point_collider_position((PointCollider*)collider);
@@ -134,7 +134,7 @@ Vector collider_position_impl(Collider* collider) {
     }
 }
 
-void collider_set_position_impl(Collider* collider, Vector position) {
+SOREN_EXPORT void collider_set_position_impl(Collider* collider, Vector position) {
     switch(collider->collider_type) {
         case COLLIDER_POINT:
             point_collider_set_position((PointCollider*)collider, position);
@@ -156,7 +156,7 @@ void collider_set_position_impl(Collider* collider, Vector position) {
     }
 }
 
-RectF collider_bounds_impl(Collider* collider) {
+SOREN_EXPORT RectF collider_bounds_impl(Collider* collider) {
     switch(collider->collider_type) {
         case COLLIDER_POINT:
             return point_collider_bounds((PointCollider*)collider);
@@ -173,7 +173,30 @@ RectF collider_bounds_impl(Collider* collider) {
     }
 }
 
-bool collider_overlaps_rect_impl(Collider* collider, RectF rect) {
+SOREN_EXPORT void collider_debug_draw_impl(Collider* collider, SDL_Renderer* renderer, SDL_FColor color) {
+    switch (collider->collider_type) {
+        case COLLIDER_POINT:
+            point_collider_debug_draw((PointCollider*)collider, renderer, color);
+            break;
+        case COLLIDER_LINE:
+            line_collider_debug_draw((LineCollider*)collider, renderer, color);
+            break;
+        case COLLIDER_CIRCLE:
+            circle_collider_debug_draw((CircleCollider*)collider, renderer, color);
+            break;
+        case COLLIDER_BOX:
+            box_collider_debug_draw((BoxCollider*)collider, renderer, color);
+            break;
+        case COLLIDER_POLYGON:
+            polygon_collider_debug_draw((PolygonCollider*)collider, renderer, color);
+            break;
+        default:
+            throw(InvalidColliderType, "Invalid collider for debug draw");
+            break;
+    }
+}
+
+SOREN_EXPORT bool collider_overlaps_rect_impl(Collider* collider, RectF rect) {
     switch (collider->collider_type) {
         case COLLIDER_POINT:
             return point_collider_overlaps_rect((PointCollider*)collider, rect);
@@ -193,7 +216,7 @@ bool collider_overlaps_rect_impl(Collider* collider, RectF rect) {
     return false;
 }
 
-bool collider_overlaps_collider_impl(Collider* collider, Collider* other) {
+SOREN_EXPORT bool collider_overlaps_collider_impl(Collider* collider, Collider* other) {
     switch (collider->collider_type) {
         case COLLIDER_POINT:
             return point_collider_overlaps_collider((PointCollider*)collider, other);
@@ -213,7 +236,7 @@ bool collider_overlaps_collider_impl(Collider* collider, Collider* other) {
     return false;
 }
 
-bool collider_overlaps_line_impl(Collider* collider, Vector start, Vector end) {
+SOREN_EXPORT bool collider_overlaps_line_impl(Collider* collider, Vector start, Vector end) {
     switch (collider->collider_type) {
         case COLLIDER_POINT:
             return point_collider_overlaps_line((PointCollider*)collider, start, end);
@@ -233,7 +256,7 @@ bool collider_overlaps_line_impl(Collider* collider, Vector start, Vector end) {
     return false;
 }
 
-bool collider_contains_point_impl(Collider* collider, Vector point) {
+SOREN_EXPORT bool collider_contains_point_impl(Collider* collider, Vector point) {
     switch (collider->collider_type) {
         case COLLIDER_POINT:
             return point_collider_contains_point((PointCollider*)collider, point);
@@ -253,7 +276,7 @@ bool collider_contains_point_impl(Collider* collider, Vector point) {
     return false;
 }
 
-bool collider_collides_rect_impl(Collider* collider, RectF rect, CollisionResult* out_result) {
+SOREN_EXPORT bool collider_collides_rect_impl(Collider* collider, RectF rect, CollisionResult* out_result) {
     switch (collider->collider_type) {
         case COLLIDER_POINT:
             return point_collider_collides_rect((PointCollider*)collider, rect, out_result);
@@ -273,7 +296,7 @@ bool collider_collides_rect_impl(Collider* collider, RectF rect, CollisionResult
     return false;
 }
 
-bool collider_collides_collider_impl(Collider* collider, Collider* other, CollisionResult* out_result, RaycastHit* out_hit) {
+SOREN_EXPORT bool collider_collides_collider_impl(Collider* collider, Collider* other, CollisionResult* out_result, RaycastHit* out_hit) {
     switch (collider->collider_type) {
         case COLLIDER_POINT:
             return point_collider_collides_collider((PointCollider*)collider, other, out_result, out_hit);
@@ -293,7 +316,7 @@ bool collider_collides_collider_impl(Collider* collider, Collider* other, Collis
     return false;
 }
 
-bool collider_collides_line_impl(Collider* collider, Vector start, Vector end, RaycastHit* out_result) {
+SOREN_EXPORT bool collider_collides_line_impl(Collider* collider, Vector start, Vector end, RaycastHit* out_result) {
     switch (collider->collider_type) {
         case COLLIDER_POINT:
             return point_collider_collides_line((PointCollider*)collider, start, end, out_result);
@@ -313,7 +336,7 @@ bool collider_collides_line_impl(Collider* collider, Vector start, Vector end, R
     return false;
 }
 
-bool collider_collides_point_impl(Collider* collider, Vector point, CollisionResult* out_result) {
+SOREN_EXPORT bool collider_collides_point_impl(Collider* collider, Vector point, CollisionResult* out_result) {
     switch (collider->collider_type) {
         case COLLIDER_POINT:
             return point_collider_collides_point((PointCollider*)collider, point, out_result);

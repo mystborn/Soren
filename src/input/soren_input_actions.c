@@ -178,8 +178,13 @@ static void action_map_free_resources(ActionMap* map) {
 }
 
 SOREN_EXPORT bool action_manager_init(int action_count, int player_count) {
+    soren_assert(!action_manager_initialized);
+    action_manager_initialized = true;
+    
     int total = action_count * player_count;
     action_manager.actions = soren_malloc(total * sizeof(*action_manager.actions));
+    action_manager.player_count = player_count;
+    action_manager.action_count = action_count;
     if (!action_manager.actions) {
         return false;
     }
@@ -195,4 +200,14 @@ SOREN_EXPORT bool action_manager_init(int action_count, int player_count) {
     }
 
     return true;
+}
+
+SOREN_EXPORT void action_manager_free(void) {
+    int total = action_manager.action_count * action_manager.player_count;
+    for(int i = 0; i < total; i++) {
+        action_map_free_resources(action_manager.actions + i);
+    }
+
+    soren_free(action_manager.actions);
+    action_manager_initialized = false;
 }

@@ -2,14 +2,14 @@
 
 #include <float.h>
 
-void collisions_build_box(Vector* points, float width, float height) {
+SOREN_EXPORT void collisions_build_box(Vector* points, float width, float height) {
     points[0] = vector_create(0, 0);
     points[1] = vector_create(width, 0);
     points[2] = vector_create(width, height);
     points[3] = vector_create(0, height);
 }
 
-Vector collisions_polygon_find_center(Vector* points, int count) {
+SOREN_EXPORT Vector collisions_polygon_find_center(Vector* points, int count) {
     float x = 0;
     float y = 0;
 
@@ -21,7 +21,7 @@ Vector collisions_polygon_find_center(Vector* points, int count) {
     return vector_create(x / count, y / count);
 }
 
-Vector collisions_get_farthest_point_in_direction(
+SOREN_EXPORT Vector collisions_get_farthest_point_in_direction(
     Vector* points, 
     int count, 
     Vector direction)
@@ -40,7 +40,7 @@ Vector collisions_get_farthest_point_in_direction(
     return points[index];
 }
 
-Vector collisions_get_closest_point_on_polygon_to_point(
+SOREN_EXPORT Vector collisions_get_closest_point_on_polygon_to_point(
     Vector* points,
     int count,
     Vector point,
@@ -71,7 +71,7 @@ Vector collisions_get_closest_point_on_polygon_to_point(
     return closest_point;
 }
 
-Vector collisions_get_closest_point_on_polygon_to_point_ext(
+SOREN_EXPORT Vector collisions_get_closest_point_on_polygon_to_point_ext(
     Vector* points,
     int count,
     Vector point,
@@ -112,7 +112,7 @@ Vector collisions_get_closest_point_on_polygon_to_point_ext(
     return closest_point;
 }
 
-PolygonCollider* polygon_collider_create_convex_from_points(
+SOREN_EXPORT PolygonCollider* polygon_collider_create_convex_from_points(
     Vector* points,
     int count)
 {
@@ -120,7 +120,7 @@ PolygonCollider* polygon_collider_create_convex_from_points(
     return NULL;
 }
 
-Vector collisions_closest_point_on_line(Vector start, Vector end, Vector closest) {
+SOREN_EXPORT Vector collisions_closest_point_on_line(Vector start, Vector end, Vector closest) {
     Vector v = vector_subtract(end, start);
     Vector w = vector_subtract(closest, start);
     float t = vector_dot(w, v) / vector_dot(v, v);

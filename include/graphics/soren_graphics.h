@@ -17,14 +17,23 @@
         int: COLOR_CONSTRUCT_BYTES(r, g, b, a), \
         float: COLOR_CONSUTRCT_FLOATS(r, g, b, a))
 
+typedef struct WindowState {
+    SDL_Window* window;
+    SDL_Renderer* renderer;
+    Camera* camera;
+    SDL_FColor background_color;
+    SDL_FColor gui_background_color;
+    RectF viewport;
+} WindowState;
+
 SOREN_EXPORT void graphics_set_camera(Camera* camera);
 SOREN_EXPORT Camera* graphics_get_camera(void);
 
 static inline bool graphics_using_camera(SDL_Renderer* renderer, Matrix* out_view_matrix) {
     Camera* camera = graphics_get_camera();
     bool result = camera
-        && camera->renderer == renderer;
-        // && camera->render_target == SDL_GetRenderTarget(renderer);
+        && camera->renderer == renderer
+        && camera->render_target == SDL_GetRenderTarget(renderer);
     if (out_view_matrix) {
         if (result) {
             *out_view_matrix = camera_view_matrix(camera);
@@ -35,6 +44,9 @@ static inline bool graphics_using_camera(SDL_Renderer* renderer, Matrix* out_vie
 
     return result;
 }
+
+SOREN_EXPORT SDL_FColor soren_background_color;
+SOREN_EXPORT SDL_FColor soren_gui_background_color;
 
 struct SorenColors {
     SDL_FColor alice_blue;

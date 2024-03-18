@@ -35,6 +35,9 @@ sources = files([
     './src/collisions/soren_colliders.c',
     './src/collisions/soren_collision_utils.c',
     './src/collisions/soren_collisions.c',
+    './src/collisions/soren_spatial_hash.c',
+    './src/ecs/soren_scene.c',
+    './src/ecs/soren_world_use_collisions.c',
     './src/external/e4c.c',
     './src/external/mist_log.c',
     './src/external/parson.c',
@@ -52,9 +55,25 @@ sources = files([
     './src/resources/soren_json.c',
     './src/resources/soren_resources.c',
     './src/timing/soren_timer.c',
+    './src/soren_compass.c',
     './src/soren_enum_parser.c',
     './src/soren_generics.c',
     './src/soren_std.c'
+])
+
+sts_sources = files([
+    './sts/scenes/level_scene.c',
+    './sts/spawners/player_spawner.c',
+    './sts/spawners/tuber_spawner.c',
+    './sts/systems/anchor_system.c',
+    './sts/systems/animation_update_system.c',
+    './sts/systems/debug_collider_system.c',
+    './sts/systems/draw_system.c',
+    './sts/systems/movement_system.c',
+    './sts/systems/player_input_system.c',
+    './sts/components.c',
+    './sts/game_init.c',
+    './sts/main.c',
 ])
 
 sdl = cc.find_library(
@@ -120,10 +139,19 @@ camera_playground = executable(
     c_args: ['/Zc:preprocessor']
 )
 
-minimal = executable(
-    'minimal',
-    files(['./playground/minimal.c']),
-    include_directories: include_directories(['../SDL/include']),
-    dependencies: [sdl],
-    c_args: ['/Zc:preprocessor']
+sts = executable(
+    'sts',
+    sts_sources,
+    include_directories: inc,
+    dependencies: deps,
+    link_with: [soren_shared],
+    c_args: ['/Zc:preprocessor', '/DGDS_EXE']
 )
+
+# minimal = executable(
+#     'minimal',
+#     files(['./playground/minimal.c']),
+#     include_directories: include_directories(['../SDL/include']),
+#     dependencies: [sdl],
+#     c_args: ['/Zc:preprocessor']
+# )

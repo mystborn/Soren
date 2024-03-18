@@ -1,5 +1,7 @@
 #include <graphics/soren_graphics.h>
 
+SDL_FColor soren_background_color = { 0, 0, 0, 1 };
+
 static Camera* global_camera;
 
 SOREN_EXPORT void graphics_set_camera(Camera* camera) {

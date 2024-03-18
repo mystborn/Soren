@@ -25,6 +25,8 @@ E4C_DECLARE_EXCEPTION(JsonException);
 
 #define SOREN_SDL_ASSERT(condition) if (!(condition)) throw(SdlException, SDL_GetError())
 
+#define SOREN_ENUM_FLAG(value, flag) (((value) & (flag)) == (flag))
+
 #ifndef SOREN_MANUAL_MEMORY
 
 #include <gc.h>
@@ -75,6 +77,13 @@ SOREN_EXPORT soren_init(bool use_logger);
 #define sso_string_realloc soren_realloc
 #define sso_string_calloc soren_calloc
 #define sso_string_free soren_free
+
+#define ecs_malloc soren_malloc
+#define ecs_realloc soren_realloc
+#define ecs_free soren_free
+#define ecs_memmove memmove
+#define ecs_memcpy memcpy
+#define ecs_memset memset
 
 #else
 

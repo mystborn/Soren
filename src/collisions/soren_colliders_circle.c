@@ -1,7 +1,8 @@
 #include <collisions/soren_colliders.h>
 #include <collisions/soren_collisions.h>
+#include <graphics/soren_primitives.h>
 
-CircleCollider* circle_collider_create(float radius) {
+SOREN_EXPORT CircleCollider* circle_collider_create(float radius) {
     CircleCollider* collider = soren_malloc(sizeof(*collider));
     if (!collider)
         return NULL;
@@ -10,7 +11,7 @@ CircleCollider* circle_collider_create(float radius) {
     return collider;
 }
 
-void circle_collider_init(CircleCollider* circle, float radius) {
+SOREN_EXPORT void circle_collider_init(CircleCollider* circle, float radius) {
     E4C_ASSERT(circle);
     collider_init((Collider*)circle, COLLIDER_CIRCLE);
     circle->radius = radius;
@@ -18,30 +19,30 @@ void circle_collider_init(CircleCollider* circle, float radius) {
     circle->scale = 1;
 }
 
-float circle_collider_rotation(CircleCollider* circle) {
+SOREN_EXPORT float circle_collider_rotation(CircleCollider* circle) {
     return 0;
 }
 
-void circle_collider_set_rotation(CircleCollider* circle, float rotation) {
+SOREN_EXPORT void circle_collider_set_rotation(CircleCollider* circle, float rotation) {
 }
 
-float circle_collider_scale(CircleCollider* circle) {
+SOREN_EXPORT float circle_collider_scale(CircleCollider* circle) {
     return circle->scale;
 }
 
-void circle_collider_set_scale(CircleCollider* circle, float scale) {
+SOREN_EXPORT void circle_collider_set_scale(CircleCollider* circle, float scale) {
     circle->scale = scale;
 }
 
-Vector circle_collider_position(CircleCollider* circle) {
+SOREN_EXPORT Vector circle_collider_position(CircleCollider* circle) {
     return circle->position;
 }
 
-void circle_collider_set_position(CircleCollider* circle, Vector position) {
+SOREN_EXPORT void circle_collider_set_position(CircleCollider* circle, Vector position) {
     circle->position = position;
 }
 
-RectF circle_collider_bounds(CircleCollider* circle) {
+SOREN_EXPORT RectF circle_collider_bounds(CircleCollider* circle) {
     float radius = circle_collider_radius(circle);
     return (RectF){ 
         circle->position.x - radius,
@@ -51,33 +52,27 @@ RectF circle_collider_bounds(CircleCollider* circle) {
     };
 }
 
-float circle_collider_radius(CircleCollider* circle) {
+SOREN_EXPORT void circle_collider_debug_draw(CircleCollider* circle, SDL_Renderer* renderer, SDL_FColor color) {
+    draw_circle_color(renderer, circle->position, circle_collider_radius(circle), 1, CIRCLE_SEGMENT_AUTO, color);
+}
+
+SOREN_EXPORT float circle_collider_radius(CircleCollider* circle) {
     return circle->radius * circle->scale;
 }
 
-float circle_collider_original_radius(CircleCollider* circle) {
+SOREN_EXPORT float circle_collider_original_radius(CircleCollider* circle) {
     return circle->radius;
 }
 
-void circle_collider_set_original_radius(CircleCollider* circle, float value) {
+SOREN_EXPORT void circle_collider_set_original_radius(CircleCollider* circle, float value) {
     circle->radius = value;
 }
 
-bool circle_collider_overlaps_rect(CircleCollider* collider, RectF rect) {
+SOREN_EXPORT bool circle_collider_overlaps_rect(CircleCollider* collider, RectF rect) {
     return collision_circle_to_rect(collider, rect);
 }
 
-bool circle_collider_overlaps_collider(CircleCollider* collider, Collider* other) {
-    // switch (other->collider_type) {
-    //     case COLLIDER_POINT:
-    //     case COLLIDER_LINE:
-    //     case COLLIDER_CIRCLE:
-    //     case COLLIDER_BOX:
-    //     case COLLIDER_POLYGON:
-    //     default:
-    //         throw(InvalidColliderType, "Invalid collider for circle overlap check.");
-    //         break;
-    // }
+SOREN_EXPORT bool circle_collider_overlaps_collider(CircleCollider* collider, Collider* other) {
     switch (other->collider_type) {
         case COLLIDER_POINT:
             PointCollider* point = (PointCollider*)other;
@@ -107,19 +102,19 @@ bool circle_collider_overlaps_collider(CircleCollider* collider, Collider* other
     return false;
 }
 
-bool circle_collider_overlaps_line(CircleCollider* collider, Vector start, Vector end) {
+SOREN_EXPORT bool circle_collider_overlaps_line(CircleCollider* collider, Vector start, Vector end) {
     return collision_segment_to_circle(start, end, collider);
 }
 
-bool circle_collider_contains_point(CircleCollider* collider, Vector point) {
+SOREN_EXPORT bool circle_collider_contains_point(CircleCollider* collider, Vector point) {
     return collision_point_to_circle(point, collider);
 }
 
-bool circle_collider_collides_rect(CircleCollider* collider, RectF rect, CollisionResult* out_result) {
+SOREN_EXPORT bool circle_collider_collides_rect(CircleCollider* collider, RectF rect, CollisionResult* out_result) {
     return collision_circle_to_rect_ext(collider, rect, out_result);
 }
 
-bool circle_collider_collides_collider(CircleCollider* collider, Collider* other, CollisionResult* out_result, RaycastHit* out_hit) {
+SOREN_EXPORT bool circle_collider_collides_collider(CircleCollider* collider, Collider* other, CollisionResult* out_result, RaycastHit* out_hit) {
     switch (other->collider_type) {
         case COLLIDER_POINT:
             PointCollider* point = (PointCollider*)other;
@@ -149,10 +144,10 @@ bool circle_collider_collides_collider(CircleCollider* collider, Collider* other
     return false;
 }
 
-bool circle_collider_collides_line(CircleCollider* collider, Vector start, Vector end, RaycastHit* out_result) {
+SOREN_EXPORT bool circle_collider_collides_line(CircleCollider* collider, Vector start, Vector end, RaycastHit* out_result) {
     return collision_segment_to_circle_ext(start, end, collider, out_result);
 }
 
-bool circle_collider_collides_point(CircleCollider* collider, Vector point, CollisionResult* out_result) {
+SOREN_EXPORT bool circle_collider_collides_point(CircleCollider* collider, Vector point, CollisionResult* out_result) {
     return collision_point_to_circle_ext(point, collider, out_result);
 }
