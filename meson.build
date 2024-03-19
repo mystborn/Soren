@@ -2,7 +2,7 @@ project('soren', 'c')
 
 cc = meson.get_compiler('c')
 
-compiler_args = ['/DSSO_STRING_BUILD', '/DECS_BUILD', '/DSOREN_BUILD', '/DE4C_BUILD', '/DGDS_BUILD', '/DMIST_LOG_BUILD', '/DSSO_STRING_MACROS="soren_std.h"', '/Zc:preprocessor']
+compiler_args = ['/DSSO_STRING_BUILD', '/DECS_BUILD', '/DSOREN_BUILD', '/DE4C_BUILD', '/DGDS_BUILD', '/DGDS_DLL', '/DMIST_LOG_BUILD', '/DSSO_STRING_MACROS="soren_std.h"', '/Zc:preprocessor']
 
 include_files = [
     'submodules/GenericDataStructures/include',
@@ -41,6 +41,7 @@ sources = files([
     './src/external/e4c.c',
     './src/external/mist_log.c',
     './src/external/parson.c',
+    './src/external/SFMT.c',
     './src/graphics/sprites/soren_sprite_atlas.c',
     './src/graphics/sprites/soren_sprite_update_mode.c',
     './src/graphics/sprites/soren_sprite.c',
@@ -145,7 +146,7 @@ sts = executable(
     include_directories: inc,
     dependencies: deps,
     link_with: [soren_shared],
-    c_args: ['/Zc:preprocessor', '/DGDS_EXE']
+    c_args: ['/Zc:preprocessor']
 )
 
 # minimal = executable(

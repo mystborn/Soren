@@ -6,11 +6,13 @@
 #include <SDL3/SDL.h>
 
 #include <sso_string.h>
+#include "external/SFMT.h"
 
 typedef SDL_FPoint Vector;
 typedef SDL_Point Point;
 typedef SDL_Rect Rect;
 typedef SDL_FRect RectF;
+typedef sfmt_t Random;
 
 #define VECTOR_ZERO \
     (Vector){ 0, 0 }
@@ -1121,5 +1123,71 @@ static inline int soren_sign_f64(double value) {
         float: soren_sign_f32, \
         double: soren_sign_f64 \
     )((value))
+
+static inline void random_init(Random* random, uint32_t seed) {
+    sfmt_init_gen_rand(random, seed);
+}
+
+static inline Random* random_create(uint32_t seed) {
+    Random* random = soren_malloc(sizeof(*random));
+    random_init(random, seed);
+    return random;
+}
+
+static inline uint32_t random_u32(Random* random) {
+    return sfmt_genrand_uint32(random);
+}
+
+static inline uint32_t random_u32_max(Random* random, int32_t max) {
+    return sfmt_genrand_uint32(random) % (max + 1);
+}
+
+static inline uint32_t random_u32_range(Random* random, uint32_t start, uint32_t end) {
+    return sfmt_genrand_uint32(random) % (end + 1 - start) + start;
+}
+
+static inline int32_t random_i32(Random* random) {
+    return (int32_t)sfmt_genrand_uint32(random) - INT_MAX - 1;
+}
+
+static inline int32_t random_i32_max(Random* random, int32_t max) {
+    return sfmt_genrand_uint32(random) % (max + 1);
+}
+
+static inline int32_t random_i32_range(Random* random, int32_t start, int32_t end) {
+    return random_i32_max(random, end - start) + start;
+}
+
+static inline uint64_t random_u64(Random* random) {
+    return sfmt_genrand_uint64(random);
+}
+
+static inline uint64_t random_u64_max(Random* random, int64_t max) {
+    return sfmt_genrand_uint64(random) % (max + 1);
+}
+
+static inline uint64_t random_u64_range(Random* random, uint64_t start, uint64_t end) {
+    return sfmt_genrand_uint64(random) % (end + 1 - start) + start;
+}
+
+static inline int64_t random_i64(Random* random) {
+    return (int64_t)sfmt_genrand_uint64(random) - INT_MAX - 1;
+}
+
+static inline int64_t random_i64_max(Random* random, int64_t max) {
+    return sfmt_genrand_uint64(random) % (max + 1);
+}
+
+static inline int64_t random_i64_range(Random* random, int64_t start, int64_t end) {
+    return random_i64_max(random, end - start) + start;
+}
+
+static inline float random_float(Random* random) {
+    return sfmt_genrand_real1(random);
+}
+
+static inline double random_double(Random* random) {
+    return sfmt_genrand_res53(random);
+}
 
 #endif
