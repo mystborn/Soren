@@ -23,9 +23,9 @@ extern "C" {
 
 #include <string.h>
 #include <assert.h>
-#include "SFMT.h"
-#include "SFMT-params.h"
-#include "SFMT-common.h"
+#include <external/SFMT.h>
+#include <external/SFMT-params.h>
+#include <external/SFMT-common.h>
 
 #if defined(__BIG_ENDIAN__) && !defined(__amd64) && !defined(BIG_ENDIAN64)
 #define BIG_ENDIAN64 1

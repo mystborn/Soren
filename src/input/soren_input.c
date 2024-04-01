@@ -21,10 +21,13 @@ SOREN_EXPORT bool input_manager_init(void) {
     input_manager.connected_gamepads = int_list_create();
     ecs_dispenser_init(&input_manager.gamepad_index_dispenser);
 
-    input_manager.keyboard_current = SDL_GetKeyboardState(&input_manager.key_count);
+    const uint8_t* keyboard = SDL_GetKeyboardState(&input_manager.key_count);
+    
     int keyboard_size = input_manager.key_count * sizeof(*input_manager.keyboard_previous);
     input_manager.keyboard_previous = soren_malloc(keyboard_size);
-    memcpy(input_manager.keyboard_previous, input_manager.keyboard_current, keyboard_size);
+    input_manager.keyboard_current = soren_malloc(keyboard_size);
+    memcpy(input_manager.keyboard_current, keyboard, keyboard_size);
+    memcpy(input_manager.keyboard_previous, keyboard, keyboard_size);
 
     input_manager.mouse_current = SDL_GetMouseState(&input_manager.mouse_position_current.x, &input_manager.mouse_position_current.y);
     input_manager.mouse_previous = input_manager.mouse_current;
@@ -42,11 +45,13 @@ SOREN_EXPORT bool input_manager_init(void) {
 SOREN_EXPORT void input_manager_update(void) {
     input_manager.mouse_previous = input_manager.mouse_current;
     input_manager.mouse_position_previous = input_manager.mouse_position_current;
+    
+    const uint8_t* keyboard = SDL_GetKeyboardState(&input_manager.key_count);
 
     memcpy(input_manager.keyboard_previous, input_manager.keyboard_current, input_manager.key_count * sizeof(*input_manager.keyboard_previous));
+    memcpy(input_manager.keyboard_current, keyboard, input_manager.key_count * sizeof(*input_manager.keyboard_current));
 
     input_manager.mouse_current = SDL_GetMouseState(&input_manager.mouse_position_current.x, &input_manager.mouse_position_current.y);
-    input_manager.keyboard_current = SDL_GetKeyboardState(NULL);
 
     input_manager.wheel_delta = input_manager.wheel_accumulate;
     input_manager.wheel_total = vector_add(input_manager.wheel_total, input_manager.wheel_accumulate);

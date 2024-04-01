@@ -73,7 +73,7 @@ static inline float min_of_f32(float* values, int count) {
 }
 
 #define soren_abs(value) \
-    ((value) < 0 ? (value) : (value) * -1)
+    ((value) < 0 ? ((value) * -1) : (value))
 
 static inline float radians_to_degrees(float radians) {
     return (float)(radians * 57.2957795130322320876798154814105);
@@ -1133,6 +1133,15 @@ static inline Random* random_create(uint32_t seed) {
     random_init(random, seed);
     return random;
 }
+
+static inline void random_free(Random* random) {
+    soren_free(random);
+}
+
+/**
+ * Gets a Random singleton for the current thread. If it needs to be created, uses the current time as the seed.
+ */
+SOREN_EXPORT Random* random_instance(void);
 
 static inline uint32_t random_u32(Random* random) {
     return sfmt_genrand_uint32(random);

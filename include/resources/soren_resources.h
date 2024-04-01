@@ -14,6 +14,7 @@ SOREN_EXPORT void resource_decrement(void* resource);
 SOREN_EXPORT SDL_Texture* resource_load_texture(SDL_Renderer* renderer, const char* fname);
 SOREN_EXPORT SpriteAtlas* resource_load_sprite_atlas(SDL_Renderer* renderer, const char* fname);
 
+SOREN_EXPORT bool resource_register(void* ref, char* key, char* type, void (*free_fn)(void* value));
 SOREN_EXPORT bool resource_is_valid(void* resource);
 SOREN_EXPORT void resource_increment(void* resource);
 

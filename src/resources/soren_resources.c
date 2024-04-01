@@ -42,7 +42,7 @@ SOREN_EXPORT void* resource_load(const char* fname, SDL_Renderer* renderer, cons
         resource->free = free_fn;
 
         resource_map_add(&soren_resources, resource->file, resource);
-        ptrm_add(&soren_value_to_resource, resource, resource);
+        ptrm_add(&soren_value_to_resource, resource->resource, resource);
     }
 
     resource->ref_count++;
@@ -99,4 +99,22 @@ SOREN_EXPORT void resource_increment(void* ref) {
     if (ptrm_try_get(&soren_value_to_resource, ref, &resource)) {
         resource->ref_count++;
     }
+}
+
+SOREN_EXPORT bool resource_register(void* ref, char* key, char* type, void (*free_fn)(void* value)) {
+    SorenResource* resource;
+    if (!ptrm_try_get(&soren_value_to_resource, ref, &resource)) {
+        resource = soren_malloc(sizeof(*resource));
+        resource->resource = ref;
+        string_init(&resource->type_name, type);
+        resource->file = string_create_ref(key);
+        resource->free = free_fn;
+
+        resource_map_add(&soren_resources, resource->file, resource);
+        ptrm_add(&soren_value_to_resource, resource->resource, resource);
+
+        return true;
+    }
+
+    return false;
 }

@@ -481,7 +481,7 @@ static inline bool point_collider_using_internal_collider(PointCollider* point) 
 
 #define soren_collider_collides_impl_selector(arg1, arg2) \
     _Generic((arg1), \
-        Collider*: cicle_collider_collides_collider, \
+        Collider*: collider_collides_collider_impl, \
         RectF: collider_collides_rect_impl, \
         Vector: _Generic((arg2), \
             Vector: collider_collides_line_impl, \
@@ -509,5 +509,15 @@ static inline bool point_collider_using_internal_collider(PointCollider* point) 
         PolygonCollider*: soren_polygon_collider_collides_impl_selector(arg1, arg2), \
         BoxCollider*: soren_box_collider_collides_impl_selector(arg1, arg2) \
     )((collider), (arg1), (arg2) __VA_OPT__(,) __VA_ARGS__)
+
+#define collider_debug_draw(collider, renderer, color) \
+    _Generic((collider), \
+        Collider*: collider_debug_draw_impl, \
+        PointCollider*: point_collider_debug_draw, \
+        LineCollider*: line_collider_debug_draw, \
+        CircleCollider*: circle_collider_debug_draw, \
+        PolygonCollider*: polygon_collider_debug_draw, \
+        BoxCollider*: box_collider_debug_draw \
+    )((collider), (renderer), (color))
 
 #endif

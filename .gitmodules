@@ -10,3 +10,10 @@
 [submodule "submodules/MistLog"]
 	path = submodules/MistLog
 	url = git@github.com:mystborn/MistLog.git
+[submodule "submodules/imgui"]
+	path = submodules/imgui
+	url = git@github.com:ocornut/imgui.git
+	branch = docking
+[submodule "submodules/dear_bindings"]
+	path = submodules/dear_bindings
+	url = git@github.com:dearimgui/dear_bindings.git

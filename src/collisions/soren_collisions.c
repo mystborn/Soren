@@ -355,11 +355,13 @@ SOREN_EXPORT bool collision_polygon_to_polygon(PolygonCollider* first, PolygonCo
     Vector* first_points = polygon_collider_points(first, &first_count);
     Vector* first_edges = polygon_collider_edge_normals(first, NULL);
     Vector first_position = vector_subtract(polygon_collider_position(first), polygon_collider_center(first));
+    // Vector first_position = polygon_collider_position(first);
 
     int second_count = 0;
     Vector* second_points = polygon_collider_points(second, &second_count);
     Vector* second_edges = polygon_collider_edge_normals(second, NULL);
     Vector second_position = vector_subtract(polygon_collider_position(second), polygon_collider_center(second));
+    // Vector second_position = polygon_collider_position(second);
 
     return collision_shape_to_shape(
         first_points,
@@ -377,11 +379,13 @@ SOREN_EXPORT bool collision_polygon_to_polygon_ext(PolygonCollider* first, Polyg
     Vector* first_points = polygon_collider_points(first, &first_count);
     Vector* first_edges = polygon_collider_edge_normals(first, NULL);
     Vector first_position = vector_subtract(polygon_collider_position(first), polygon_collider_center(first));
+    // Vector first_position = polygon_collider_position(first);
 
     int second_count = 0;
     Vector* second_points = polygon_collider_points(second, &second_count);
     Vector* second_edges = polygon_collider_edge_normals(second, NULL);
     Vector second_position = vector_subtract(polygon_collider_position(second), polygon_collider_center(second));
+    // Vector second_position = polygon_collider_position(second);
 
     return collision_shape_to_shape_ext(
         first_points,
@@ -465,6 +469,19 @@ SOREN_EXPORT bool collision_shape_to_shape(
     bool intersecting = true;
     Vector offset = vector_subtract(first_position, second_position);
     Vector axis = VECTOR_ZERO;
+
+    // String str = string_create("");
+    // for (int i = 0; i < first_points_count; i++) {
+    //     string_clear(&str);
+    //     vector_to_string(first_edge_normals[i], &str);
+    //     log_trace(soren_logger, &str);
+    // }
+
+    // for (int i = 0; i < second_points_count; i++) {
+    //     string_clear(&str);
+    //     vector_to_string(second_edge_normals[i], &str);
+    //     log_trace(soren_logger, &str);
+    // }
 
     float min_a = 0;
     float max_a = 0;

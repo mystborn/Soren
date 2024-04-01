@@ -32,7 +32,7 @@ E4C_DECLARE_EXCEPTION(JsonException);
 #include <gc.h>
 
 static inline void* soren_malloc(size_t size) {
-    void* result = GC_malloc(size);
+    void* result = GC_debug_malloc(size, GC_EXTRAS);
     if (!result) {
         throw(NotEnoughMemoryException, "Failed to allocate memory");
     }
@@ -41,7 +41,7 @@ static inline void* soren_malloc(size_t size) {
 }
 
 static inline void* soren_calloc(size_t n, size_t size) {
-    void* result = GC_malloc(size * n);
+    void* result = GC_debug_malloc(size * n, GC_EXTRAS);
     if (!result) {
         throw(NotEnoughMemoryException, "Failed to allocate memory");
     }
@@ -50,7 +50,7 @@ static inline void* soren_calloc(size_t n, size_t size) {
 }
 
 static inline void* soren_realloc(void* ptr, size_t size) {
-    void* result = GC_realloc(ptr, size);
+    void* result = GC_debug_realloc(ptr, size, GC_EXTRAS);
     if (!result) {
         throw(NotEnoughMemoryException, "Failed to reallocate memory");
     }
@@ -59,7 +59,7 @@ static inline void* soren_realloc(void* ptr, size_t size) {
 }
 
 static inline void soren_free(void* ptr) {
-    GC_free(ptr);
+    GC_debug_free(ptr);
 }
 
 SOREN_EXPORT soren_init(bool use_logger);

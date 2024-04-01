@@ -1,6 +1,7 @@
-project('soren', 'c')
+project('soren', ['c', 'cpp'])
 
 cc = meson.get_compiler('c')
+cpp = meson.get_compiler('cpp')
 
 compiler_args = ['/DSSO_STRING_BUILD', '/DECS_BUILD', '/DSOREN_BUILD', '/DE4C_BUILD', '/DGDS_BUILD', '/DGDS_DLL', '/DMIST_LOG_BUILD', '/DSSO_STRING_MACROS="soren_std.h"', '/Zc:preprocessor']
 
@@ -8,6 +9,9 @@ include_files = [
     'submodules/GenericDataStructures/include',
     'submodules/MystEcs/include',
     'submodules/sso_string/include',
+    'submodules/imgui',
+    'submodules/imgui/backends',
+    'cimgui',
     'include',
     '../SDL/include',
     '../SDL_ttf/include',
@@ -59,10 +63,13 @@ sources = files([
     './src/soren_compass.c',
     './src/soren_enum_parser.c',
     './src/soren_generics.c',
+    './src/soren_math.c',
     './src/soren_std.c'
 ])
 
 sts_sources = files([
+    './sts/scenes/ai_debug_scene.c',
+    './sts/scenes/bullet_debug_scene.c',
     './sts/scenes/level_scene.c',
     './sts/spawners/player_spawner.c',
     './sts/spawners/tuber_spawner.c',
@@ -72,9 +79,31 @@ sts_sources = files([
     './sts/systems/draw_system.c',
     './sts/systems/movement_system.c',
     './sts/systems/player_input_system.c',
+    './sts/ui/bullet_creator/bullet_creator_ui_system.c',
+    './sts/ui/bullet_creator/bullet_creator.c',
+    './sts/ui/sprite_selector/sprite_selector_ui_system.c',
+    './sts/ui/sprite_selector/sprite_selector.c',
+    './sts/ui/widgets/component_widget.c',
+    './sts/ui/widgets/imgui_input_string.c',
+    './sts/ui/widgets/transform_widget.c',
+    './sts/ui/widgets/velocity_widget.c',
+    './sts/ui/ui_components.c',
     './sts/components.c',
     './sts/game_init.c',
     './sts/main.c',
+])
+
+imgui_sources = files([
+    './submodules/imgui/imgui_demo.cpp',
+    './submodules/imgui/imgui_draw.cpp',
+    './submodules/imgui/imgui_tables.cpp',
+    './submodules/imgui/imgui_widgets.cpp',
+    './submodules/imgui/imgui.cpp',
+    './submodules/imgui/backends/imgui_impl_sdl3.cpp',
+    './submodules/imgui/backends/imgui_impl_sdlrenderer3.cpp',
+    './cimgui/cimgui_impl_sdl3.cpp',
+    './cimgui/cimgui_impl_sdlrenderer3.cpp',
+    './cimgui/cimgui.cpp'
 ])
 
 sdl = cc.find_library(
@@ -104,6 +133,14 @@ gc = cc.find_library(
 
 deps = [sdl, sdl_ttf, sdl_image, cord, gc]
 
+imgui = static_library(
+    'imgui',
+    imgui_sources,
+    include_directories: inc,
+    name_suffix: 'lib',
+    name_prefix: '',
+    dependencies: deps)
+
 soren = static_library(
     'soren',
     sources,
@@ -120,6 +157,14 @@ soren_shared = shared_library(
     include_directories: inc,
     dependencies: deps,
     c_args: compiler_args
+)
+
+imgui_test = executable(
+    'imgui_test',
+    files(['./submodules/imgui/examples/example_sdl3_sdlrenderer3/main.cpp']),
+    include_directories: inc,
+    dependencies: deps,
+    link_with: [imgui]
 )
 
 soren_playground = executable(
@@ -140,19 +185,20 @@ camera_playground = executable(
     c_args: ['/Zc:preprocessor']
 )
 
-sts = executable(
-    'sts',
-    sts_sources,
+collisions_playground = executable(
+    'collisions_playground',
+    files(['./playground/collisions.c', './playground/run.c']),
     include_directories: inc,
     dependencies: deps,
     link_with: [soren_shared],
     c_args: ['/Zc:preprocessor']
 )
 
-# minimal = executable(
-#     'minimal',
-#     files(['./playground/minimal.c']),
-#     include_directories: include_directories(['../SDL/include']),
-#     dependencies: [sdl],
-#     c_args: ['/Zc:preprocessor']
-# )
+sts = executable(
+    'sts',
+    sts_sources,
+    include_directories: inc,
+    dependencies: deps,
+    link_with: [soren_shared, imgui],
+    c_args: ['/Zc:preprocessor']
+)

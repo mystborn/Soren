@@ -253,7 +253,7 @@ static void remove_comments(char *string, const char *start_token, const char *e
             continue;
         } else if (current_char == '\"' && !escaped) {
             in_string = !in_string;
-        } else if (!in_string && strncmp(string, start_token, start_token_len) == 0) {
+        } else if (!in_string && strnicmp(string, start_token, start_token_len) == 0) {
             for(i = 0; i < start_token_len; i++) {
                 string[i] = ' ';
             }
@@ -406,7 +406,7 @@ static parson_bool_t is_decimal(const char *string, size_t length) {
     if (length > 1 && string[0] == '0' && string[1] != '.') {
         return PARSON_FALSE;
     }
-    if (length > 2 && !strncmp(string, "-0", 2) && string[2] != '.') {
+    if (length > 2 && !strnicmp(string, "-0", 2) && string[2] != '.') {
         return PARSON_FALSE;
     }
     while (length--) {
@@ -579,7 +579,7 @@ static size_t json_object_get_cell_ix(const JSON_Object *object, const char *key
         }
         key_to_check = object->names[cell];
         key_to_check_len = strlen(key_to_check);
-        if (key_to_check_len == key_len && strncmp(key, key_to_check, key_len) == 0) {
+        if (key_to_check_len == key_len && strnicmp(key, key_to_check, key_len) == 0) {
             *out_found = PARSON_TRUE;
             return ix;
         }
@@ -1090,10 +1090,10 @@ static JSON_Value * parse_string_value(const char **string) {
 static JSON_Value * parse_boolean_value(const char **string) {
     size_t true_token_size = SIZEOF_TOKEN("true");
     size_t false_token_size = SIZEOF_TOKEN("false");
-    if (strncmp("true", *string, true_token_size) == 0) {
+    if (strnicmp("true", *string, true_token_size) == 0) {
         *string += true_token_size;
         return json_value_init_boolean(1);
-    } else if (strncmp("false", *string, false_token_size) == 0) {
+    } else if (strnicmp("false", *string, false_token_size) == 0) {
         *string += false_token_size;
         return json_value_init_boolean(0);
     }
@@ -1117,7 +1117,7 @@ static JSON_Value * parse_number_value(const char **string) {
 
 static JSON_Value * parse_null_value(const char **string) {
     size_t token_size = SIZEOF_TOKEN("null");
-    if (strncmp("null", *string, token_size) == 0) {
+    if (strnicmp("null", *string, token_size) == 0) {
         *string += token_size;
         return json_value_init_null();
     }

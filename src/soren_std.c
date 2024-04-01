@@ -28,4 +28,5 @@ SOREN_EXPORT soren_init(bool use_logger) {
 
     soren_resource_map_init();
     soren_enum_parser_init();
+    rng_init();
 }

@@ -76,8 +76,7 @@ static void polygon_clean(PolygonCollider* polygon) {
     if (polygon->rotation != 0) {
         float sin = sinf(polygon->rotation);
         Vector center = polygon_collider_center(polygon);
-        log_trace(soren_logger, "%g, %g", center.x, center.y);
-        Matrix transform = matrix_create_trso(vector_negate(center), polygon->rotation, vector_create(polygon->scale, polygon->scale), center);
+        Matrix transform = matrix_create_trso(VECTOR_ZERO, polygon->rotation, vector_create(polygon->scale, polygon->scale), center);
 
         for (int i = 0; i < polygon->points_count; i++) {
             Vector p = polygon->original_points[i];
@@ -198,24 +197,17 @@ SOREN_EXPORT RectF polygon_collider_bounds(PolygonCollider* polygon) {
 
 SOREN_EXPORT void polygon_collider_debug_draw(PolygonCollider* polygon, SDL_Renderer* renderer, SDL_FColor color) {
     polygon_clean(polygon);
-
-    static bool has_printed = false;
+    Vector center = polygon_collider_center(polygon);
 
     // TODO: Allow passing a position to primitives api?
     for (int i = 0; i < polygon->points_count; i++) {
-
-        polygon->points[i] = vector_add(polygon->points[i], polygon->position);
-
-        if (!has_printed) {
-            log_trace(soren_logger, "(%g, %g)", polygon->points[i].x, polygon->points[i].y);
-        }
+        polygon->points[i] = vector_subtract(vector_add(polygon->points[i], polygon->position), center);
     }
-    has_printed = true;
 
     draw_polygon_color(renderer, polygon->points, polygon->points_count, color);
 
     for (int i = 0; i < polygon->points_count; i++) {
-        polygon->points[i] = vector_subtract(polygon->points[i], polygon->position);
+        polygon->points[i] = vector_add(vector_subtract(polygon->points[i], polygon->position), center);
     }
 }
 
